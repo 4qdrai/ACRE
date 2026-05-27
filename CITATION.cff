@@ -1,0 +1,49 @@
+cff-version: 1.2.0
+message: "If you use this software in your research, please cite it as below."
+type: software
+title: "ACRE: Algebraic Concept Reasoning Engine"
+abstract: >-
+  ACRE implements the Formalized Latent Concept Architecture (F-LACA),
+  a neuro-symbolic framework that decouples natural language syntax from
+  formal logical reasoning. It encodes knowledge into structured 10-element
+  Concept Tensors and Generalized Problem Formulations (GPFs), then reasons
+  over them via differentiable algebraic operations in a Latent Algebraic
+  Reasoning Engine (LARE). This architecture structurally eliminates
+  hallucination and reduces reasoning compute complexity by orders of
+  magnitude compared to standard autoregressive transformers.
+version: 0.1.0
+date-released: "2026-05-27"
+license: Apache-2.0
+repository-code: "https://github.com/4qdrai/F-LACA"
+url: "https://github.com/4qdrai/F-LACA"
+keywords:
+  - algebraic-reasoning
+  - concept-learning
+  - neuro-symbolic-ai
+  - latent-reasoning
+  - formal-verification
+  - knowledge-representation
+  - compositional-generalization
+  - autonomous-driving
+authors:
+  - name: "4QDR AI Research"
+    alias: "4qdrai"
+  - family-names: "Bouali"
+    given-names: "Said"
+    affiliation: "4QDR AI Research"
+  - family-names: "Research Team"
+    given-names: "F-LACA"
+    affiliation: "4QDR AI Research"
+references:
+  - type: article
+    title: "Compositional Generalization in Neural Networks"
+    authors:
+      - family-names: "Hupkes"
+        given-names: "Dieuwke"
+    year: 2023
+  - type: article
+    title: "Faith and Fate: Limits of Transformers on Compositionality"
+    authors:
+      - family-names: "Dziri"
+        given-names: "Nouha"
+    year: 2024

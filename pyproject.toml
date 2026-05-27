@@ -1,0 +1,143 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "acre"
+version = "0.1.0"
+description = "Algebraic Concept Reasoning Engine — Formalized Latent Concept Architecture (F-LACA)"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.10"
+authors = [
+    {name = "4QDR AI Research"},
+    {name = "Said Bouali", email = "research@4qdr.ai"},
+]
+keywords = [
+    "algebraic-reasoning",
+    "concept-learning",
+    "neuro-symbolic",
+    "latent-reasoning",
+    "formal-verification",
+    "compositional-generalization",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "torch>=2.1.0",
+    "numpy>=1.24.0",
+    "scipy>=1.11.0",
+    "matplotlib>=3.7.0",
+    "tqdm>=4.65.0",
+    "faiss-cpu>=1.7.4",
+    "scikit-learn>=1.3.0",
+    "pyyaml>=6.0.0",
+    "tensorboard>=2.14.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-xdist>=3.3.0",
+    "black>=23.7.0",
+    "ruff>=0.1.0",
+    "mypy>=1.5.0",
+    "pre-commit>=3.3.0",
+]
+wandb = [
+    "wandb>=0.15.0",
+]
+embedding = [
+    "sentence-transformers>=2.2.0",
+    "transformers>=4.33.0",
+]
+all = [
+    "acre[dev]",
+    "acre[wandb]",
+    "acre[embedding]",
+]
+
+[project.urls]
+Homepage = "https://github.com/4qdrai/F-LACA"
+Documentation = "https://github.com/4qdrai/F-LACA/wiki"
+Repository = "https://github.com/4qdrai/F-LACA"
+Issues = "https://github.com/4qdrai/F-LACA/issues"
+Changelog = "https://github.com/4qdrai/F-LACA/blob/main/CHANGELOG.md"
+
+[project.scripts]
+acre-distill = "acre.scripts.distill_concepts:main"
+acre-train = "acre.training.train:main"
+acre-eval = "acre.evaluation.evaluate:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+acre = ["py.typed", "data/**/*.json", "data/**/*.yaml"]
+
+# ── Testing ──────────────────────────────────────────────────────────
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--tb=short",
+    "--strict-markers",
+    "-ra",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "gpu: marks tests that require GPU",
+    "integration: marks integration tests",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+
+# ── Coverage ─────────────────────────────────────────────────────────
+[tool.coverage.run]
+source = ["src/acre"]
+omit = ["*/tests/*", "*/scripts/*"]
+
+[tool.coverage.report]
+show_missing = true
+precision = 2
+fail_under = 60
+
+# ── Black ────────────────────────────────────────────────────────────
+[tool.black]
+line-length = 99
+target-version = ["py310", "py311", "py312"]
+
+# ── Ruff ─────────────────────────────────────────────────────────────
+[tool.ruff]
+line-length = 99
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "SIM"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["acre"]
+
+# ── Mypy ─────────────────────────────────────────────────────────────
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
