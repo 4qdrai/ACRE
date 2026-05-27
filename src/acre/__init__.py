@@ -60,6 +60,7 @@ from acre.core.constraint_mask import ConstraintMask
 from acre.core.lare import LARE
 from acre.core.concept_encoder import ConceptEncoder, ProblemEncoder
 from acre.core.decoder import SolutionDecoder
+from acre.core.flow_matching_decoder import FlowMatchingDecoder
 from acre.core.concept_embedding import ConceptEmbeddingModel, ConceptReranker
 from acre.core.latent_rag import LatentRAG
 
@@ -79,6 +80,7 @@ __all__ = [
     "ConceptEncoder",
     "ProblemEncoder",
     "SolutionDecoder",
+    "FlowMatchingDecoder",
     # Embedding & retrieval
     "ConceptEmbeddingModel",
     "ConceptReranker",
