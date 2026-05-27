@@ -1,4 +1,4 @@
-<![CDATA[# Training Methodology
+# Training Methodology
 
 ## ACRE: Self-Supervised Concept Distillation & Algebraic Pre-Training
 
@@ -752,4 +752,3 @@ The fundamental insight is that **knowledge has structure**, and exploiting that
 ---
 
 *© 2026 4QDR AI Research. Training Methodology v2.0.*
-]]>

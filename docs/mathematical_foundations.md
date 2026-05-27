@@ -1,4 +1,4 @@
-<![CDATA[# Mathematical Foundations of ACRE
+# Mathematical Foundations of ACRE
 
 ## Algebraic Concept Reasoning Engine — Formal Theory
 
@@ -652,4 +652,3 @@ More rigorously, under the assumption that the problem distribution is ergodic (
 ---
 
 *© 2026 4QDR AI Research. Mathematical Foundations v2.0.*
-]]>

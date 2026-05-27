@@ -1,4 +1,4 @@
-<![CDATA[# Systematic Comparison Matrix
+# Systematic Comparison Matrix
 
 ## ACRE vs. the State of the Art
 
@@ -265,5 +265,4 @@ The **4B-JEPA/ALPS** companion architecture provides hierarchical multi-scale re
 
 ---
 
-*© 2026 4QDR AI Research. Comparison Matrix v2.0.*
-]]>
+
