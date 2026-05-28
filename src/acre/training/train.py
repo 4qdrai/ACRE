@@ -230,6 +230,41 @@ def train_self_learning(args: argparse.Namespace, metrics: MetricsLogger) -> Non
         metrics.log("self_learn/success_rate", rate, i)
 
 
+def train_scan(args: argparse.Namespace, metrics: MetricsLogger) -> None:
+    """Run SCAN training benchmark."""
+    print("\n" + "=" * 60)
+    print("SCAN COMPOSITIONAL GENERALIZATION BENCHMARK")
+    print("=" * 60)
+
+    from acre.evaluation.scan_benchmark import SCANBenchmark
+
+    # Initialize benchmark
+    bench = SCANBenchmark(device=args.device)
+
+    split = getattr(args, "scan_split", "length")
+    print(f"Training on split: {split} | Epochs: {args.epochs}")
+    
+    # Run training
+    train_metrics = bench.train(
+        model_type="acre",
+        split=split,
+        epochs=args.epochs,
+        lr=args.lr,
+        batch_size=args.batch_size,
+    )
+
+    # Evaluate
+    eval_metrics = bench.evaluate(split=split)
+    print(f"  Exact Match Accuracy: {eval_metrics['accuracy']:.2%}  ({eval_metrics['correct']}/{eval_metrics['n_examples']})")
+
+    # Generate figures
+    bench.generate_figures()
+
+    # Log metrics
+    metrics.log("scan/train_loss", train_metrics["final_loss"], args.epochs)
+    metrics.log("scan/accuracy", eval_metrics["accuracy"], args.epochs)
+
+
 def train_full_pipeline(args: argparse.Namespace, metrics: MetricsLogger) -> None:
     """Run the full training pipeline: contrastive -> algebraic -> self-learning."""
     t0 = time.time()
@@ -268,12 +303,13 @@ Examples:
     python -m acre.training.train --mode algebraic --epochs 30 --device cuda
     python -m acre.training.train --mode full --epochs 20 --mixed-precision
     python -m acre.training.train --mode self-learn --self-learn-steps 5000
+    python -m acre.training.train --config configs/scan_h100.yaml
         """,
     )
 
     parser.add_argument(
         "--mode", type=str, default="full",
-        choices=["contrastive", "algebraic", "self-learn", "full"],
+        choices=["contrastive", "algebraic", "scan", "self-learn", "full"],
         help="Training mode (default: full)",
     )
     parser.add_argument("--epochs", type=int, default=10, help="Number of training epochs")
@@ -288,8 +324,54 @@ Examples:
     parser.add_argument("--log-dir", type=str, default="runs/acre_training", help="TensorBoard log directory")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
     parser.add_argument("--resume", type=str, default=None, help="Resume from checkpoint path")
+    parser.add_argument("--config", type=str, default=None, help="Path to YAML configuration file")
 
     args = parser.parse_args()
+
+    # Load from config if provided
+    if args.config:
+        if not os.path.exists(args.config):
+            parser.error(f"Config file not found: {args.config}")
+        try:
+            import yaml
+            with open(args.config, "r") as f:
+                cfg = yaml.safe_load(f)
+            
+            # Map configuration fields to args
+            if "training" in cfg:
+                t_cfg = cfg["training"]
+                if "epochs" in t_cfg:
+                    args.epochs = t_cfg["epochs"]
+                if "batch_size" in t_cfg:
+                    args.batch_size = t_cfg["batch_size"]
+                if "lr" in t_cfg:
+                    args.lr = float(t_cfg["lr"])
+                if "precision" in t_cfg:
+                    args.mixed_precision = (t_cfg["precision"] in ["bf16", "fp16"])
+                if "accumulation_steps" in t_cfg:
+                    args.grad_accum = t_cfg["accumulation_steps"]
+            
+            if "logging" in cfg:
+                l_cfg = cfg["logging"]
+                if "log_dir" in l_cfg:
+                    args.log_dir = l_cfg["log_dir"]
+            
+            if "data" in cfg:
+                d_cfg = cfg["data"]
+                if "dataset" in d_cfg:
+                    if d_cfg["dataset"] == "scan":
+                        args.mode = "scan"
+                if "split" in d_cfg:
+                    args.scan_split = d_cfg["split"]
+            
+            if "experiment" in cfg:
+                e_cfg = cfg["experiment"]
+                if "seed" in e_cfg:
+                    args.seed = e_cfg["seed"]
+                    
+            print(f"Loaded configuration from {args.config}: mode={args.mode}, epochs={args.epochs}, batch_size={args.batch_size}, lr={args.lr}, mixed_precision={args.mixed_precision}")
+        except Exception as e:
+            print(f"Warning: Failed to load config from {args.config}: {e}")
 
     # Auto-detect device
     if args.device == "auto":
@@ -338,6 +420,7 @@ def main() -> None:
     mode_fn = {
         "contrastive": train_contrastive,
         "algebraic": train_algebraic,
+        "scan": train_scan,
         "self-learn": train_self_learning,
         "full": train_full_pipeline,
     }
