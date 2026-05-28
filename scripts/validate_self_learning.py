@@ -50,14 +50,22 @@ def main():
     try:
         dataset = load_dataset("Free2035/260511_4QDR_Thinker_V2", token=token, split="train")
         print(f"Successfully loaded HF dataset! Total rows: {len(dataset)}")
+        # Filter for 'formalized_problem' (pf) and '10_element_concept' (concept) tasks
+        dataset = dataset.filter(lambda x: x.get("task_type") in ["formalized_problem", "10_element_concept"])
+        print(f"Filtered dataset for task_types: 'formalized_problem' (pf) and '10_element_concept' (concept). Total filtered rows: {len(dataset)}")
     except Exception as e:
         print(f"Error loading from HF, falling back to local inspection sample: {e}")
         local_sample_path = os.path.join(
             "C:\\Users\\User\\.gemini\\antigravity\\brain\\b5556f0b-8f2c-4bf2-a0cb-3a4828698ae9\\scratch\\inspect_hf_dataset.json"
         )
         with open(local_sample_path, "r", encoding="utf-8") as f:
-            dataset = json.load(f)
-        print(f"Loaded {len(dataset)} examples from local inspection file.")
+            local_data = json.load(f)
+        # Filter local data too
+        dataset = [x for x in local_data if x.get("task_type") in ["formalized_problem", "10_element_concept"]]
+        if not dataset:
+            # Fallback if no matching types in early sample
+            dataset = local_data
+        print(f"Loaded and filtered {len(dataset)} examples from local inspection file.")
 
     # 2. Initialize Pipeline & Self-Learning Loop
     print("\nInitializing TextToConceptPipeline & SelfLearningLoop...")
