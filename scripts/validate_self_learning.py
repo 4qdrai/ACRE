@@ -85,13 +85,19 @@ def main():
     )
     loop = SelfLearningLoop(cfg)
 
-    # Pre-seed RAG with a few high-confidence exemplars so retrieval works during early training
-    print("Pre-seeding LatentRAG with initial concept-problem-solution exemplars...")
+    # Pre-seed RAG with mathematically aligned, clean exemplars so the solver learns semantic mapping
+    print("Pre-seeding LatentRAG with mathematically aligned concept-problem-solution exemplars...")
     for i in range(3):
         dummy_c = ConceptTensor.random(d=element_dim).to(device)
         dummy_p = ProblemTensor.random(d=element_dim).to(device)
-        # Create a solution tensor with verification passed
-        dummy_s = SolutionTensor.from_result(torch.randn(10, element_dim, device=device), confidence=0.85)
+        
+        # Align the solution's result tensor to the problem's formal specification
+        spec_vec = dummy_p.get_formal_specification()
+        # Shape: (10, d)
+        aligned_result = spec_vec.unsqueeze(0).expand(10, element_dim).clone()
+        
+        # Create solution tensor
+        dummy_s = SolutionTensor.from_result(aligned_result, confidence=0.95)
         dummy_s.verification_passed = True
         loop._store_success(dummy_c, dummy_p, dummy_s)
     
