@@ -182,6 +182,15 @@ def main():
         print(f"Gradient loss reduction rate:    {reduction:.2f}%")
     print("=" * 70)
 
+    # 4. Save trained checkpoints
+    print("\nSaving trained checkpoints...")
+    os.makedirs("checkpoints", exist_ok=True)
+    torch.save(loop.solver.state_dict(), "checkpoints/self_learning_solver.pt")
+    torch.save(pipeline.text_encoder.state_dict(), "checkpoints/self_learning_text_encoder.pt")
+    torch.save(pipeline.concept_head.state_dict(), "checkpoints/self_learning_concept_head.pt")
+    torch.save(pipeline.problem_head.state_dict(), "checkpoints/self_learning_problem_head.pt")
+    print("Checkpoints saved successfully! [OK]")
+
     print("\n[SUCCESS] Use Case 2 validation completed cleanly without mocks!")
     print("=" * 70)
 
