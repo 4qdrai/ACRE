@@ -191,6 +191,22 @@ def main():
     torch.save(pipeline.problem_head.state_dict(), "checkpoints/self_learning_problem_head.pt")
     print("Checkpoints saved successfully! [OK]")
 
+    # 5. Save training statistics
+    print("\nSaving training statistics to results/self_learning_stats.json...")
+    os.makedirs("results", exist_ok=True)
+    stats_data = {
+        "total_attempts": loop.stats.total_attempts,
+        "successes": loop.stats.successes,
+        "failures": loop.stats.failures,
+        "success_rate_history": loop.stats.success_rate_history,
+        "loss_history": loop.stats.loss_history,
+        "rag_size_history": loop.stats.rag_size_history,
+        "consolidation_count": loop.stats.consolidation_count,
+    }
+    with open("results/self_learning_stats.json", "w") as f:
+        json.dump(stats_data, f, indent=2)
+    print("Statistics saved successfully! [OK]")
+
     print("\n[SUCCESS] Use Case 2 validation completed cleanly without mocks!")
     print("=" * 70)
 
