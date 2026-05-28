@@ -94,7 +94,9 @@ class SelfLearningLoop:
         # Define joint optimization parameters if pipeline is provided
         params = list(self.solver.parameters())
         if pipeline is not None:
-            params.extend(list(pipeline.parameters()))
+            params.extend(list(pipeline.text_encoder.parameters()))
+            params.extend(list(pipeline.concept_head.parameters()))
+            params.extend(list(pipeline.problem_head.parameters()))
 
         self.optimizer = AdamW(params, lr=self.cfg.lr)
 
