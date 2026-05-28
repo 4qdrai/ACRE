@@ -68,29 +68,30 @@ def main():
         print(f"Loaded and filtered {len(dataset)} examples from local inspection file.")
 
     # 2. Initialize Pipeline & Self-Learning Loop
-    print("\nInitializing TextToConceptPipeline & SelfLearningLoop...")
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"\nInitializing TextToConceptPipeline & SelfLearningLoop on device: {device}...")
     element_dim = 64
-    pipeline = TextToConceptPipeline(vocab_size=32000, d_model=768, element_dim=element_dim, device="cpu")
+    pipeline = TextToConceptPipeline(vocab_size=32000, d_model=768, element_dim=element_dim, device=device)
 
-    # Set up config with frequent consolidation to showcase the feature
+    # Set up config for scale-up 5,000 iterations
     cfg = SelfLearningConfig(
-        max_iterations=15,
-        consolidation_interval=5,
-        consolidation_epochs=3,
-        consolidation_batch_size=4,
+        max_iterations=5000,
+        consolidation_interval=500,
+        consolidation_epochs=5,
+        consolidation_batch_size=64,
         lr=5e-4,
         element_dim=element_dim,
-        device="cpu"
+        device=device
     )
     loop = SelfLearningLoop(cfg)
 
     # Pre-seed RAG with a few high-confidence exemplars so retrieval works during early training
     print("Pre-seeding LatentRAG with initial concept-problem-solution exemplars...")
     for i in range(3):
-        dummy_c = ConceptTensor.random(d=element_dim)
-        dummy_p = ProblemTensor.random(d=element_dim)
+        dummy_c = ConceptTensor.random(d=element_dim).to(device)
+        dummy_p = ProblemTensor.random(d=element_dim).to(device)
         # Create a solution tensor with verification passed
-        dummy_s = SolutionTensor.from_result(torch.randn(10, element_dim), confidence=0.85)
+        dummy_s = SolutionTensor.from_result(torch.randn(10, element_dim, device=device), confidence=0.85)
         dummy_s.verification_passed = True
         loop._store_success(dummy_c, dummy_p, dummy_s)
     
@@ -136,9 +137,11 @@ def main():
             loop.stats.record_attempt(False)
             loop.stats.loss_history.append(loss_val)
 
-        # Print step details
-        loss_str = f"{loss_val:.4f}" if loss_val > 0.0 else "N/A"
-        print(f"{step:<5} | {task_id:<15} | {short_summary:<40} | {status:<8} | {loss_str:<8}")
+        # Print step details (print first 10, then every 100 steps, but always print PASSED immediately)
+        should_print = passed or (step % 100 == 0) or (step <= 10)
+        if should_print:
+            loss_str = f"{loss_val:.4f}" if loss_val > 0.0 else "N/A"
+            print(f"{step:<5} | {task_id:<15} | {short_summary:<40} | {status:<8} | {loss_str:<8}")
 
         # Record RAG size history
         loop.stats.rag_size_history.append(loop.rag.num_entries)
