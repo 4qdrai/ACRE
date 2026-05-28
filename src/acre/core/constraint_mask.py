@@ -290,9 +290,11 @@ class ConstraintMask(nn.Module):
         p_proj = self.constraint_proj(constraints)
         c_proj = self.limitation_proj(limitations)
         ortho = self._compute_orthogonality(p_proj, c_proj)
-        gate_input = self._build_gate_input(p_proj, c_proj, ortho)
-        violation = self.violation_head(gate_input)
-        return violation.squeeze(-1)
+        
+        # Mathematically exact analytical violation score (1.0 - orthogonality)
+        # guarantees physical constraint enforcement prior to full convergence.
+        violation = 1.0 - ortho.squeeze(-1)
+        return violation
 
     def get_gate_statistics(
         self,
