@@ -359,11 +359,14 @@ class LARE(nn.Module):
         total_violation = 0.0
 
         for j in range(num_concepts):
-            # Mean-pool concept elements to a single vector for operator input
-            c_mean = concepts[j].to_tensor().mean(dim=0)  # (d,)
-
-            # Apply operators with gating
-            op_output = self._apply_operators(c_mean, context, formal_reqs)
+            # Apply operators to all 10 aspect elements individually rather than pre-pooling
+            op_outputs = []
+            for idx in range(NUM_CONCEPT_ELEMENTS):
+                c_element = concepts[j].get_element(idx)
+                op_outputs.append(self._apply_operators(c_element, context, formal_reqs))
+            
+            # Aggregate the independently processed aspect representations
+            op_output = torch.stack(op_outputs, dim=0).mean(dim=0)  # (d,)
 
             # Apply constraint mask Φ
             constraints = problem.get_constraint_vector()       # (d,)

@@ -78,15 +78,25 @@ class SelfLearningLoop:
         2. **Consolidation**: Periodically distill RAG entries into model weights
     """
 
-    def __init__(self, config: Optional[SelfLearningConfig] = None) -> None:
+    def __init__(
+        self,
+        config: Optional[SelfLearningConfig] = None,
+        pipeline: Optional[Any] = None,
+    ) -> None:
         self.cfg = config or SelfLearningConfig()
         self.device = torch.device(self.cfg.device)
 
         self.solver = LARE(d=self.cfg.element_dim).to(self.device)
         self.rag = LatentRAG(d_embed=256, max_entries=self.cfg.rag_max_size)
         self.stats = LearningStats()
+        self.pipeline = pipeline
 
-        self.optimizer = AdamW(self.solver.parameters(), lr=self.cfg.lr)
+        # Define joint optimization parameters if pipeline is provided
+        params = list(self.solver.parameters())
+        if pipeline is not None:
+            params.extend(list(pipeline.parameters()))
+
+        self.optimizer = AdamW(params, lr=self.cfg.lr)
 
     def solve_and_verify(
         self,
@@ -120,36 +130,47 @@ class SelfLearningLoop:
             solution.to("cpu"),
         )
 
-    def _train_on_failure(self, concept: ConceptTensor, problem: ProblemTensor) -> float:
+    def _train_on_failure(
+        self,
+        concept: ConceptTensor,
+        problem: ProblemTensor,
+        keywords: Optional[str] = None,
+        question: Optional[str] = None,
+    ) -> float:
         """Use a failed attempt as a targeted training signal.
 
-        We pull similar successful triples from RAG and train the solver
-        to produce solutions closer to those known-good examples.
+        We train the solver (and distillation pipeline) to produce solutions 
+        aligned with the problem's own formal specification and constraints,
+        guiding it to the mathematically correct manifold.
         """
-        # Generate retrieval embedding key
-        c_flat = concept.to_tensor().reshape(-1)
-        p_flat = problem.to_tensor().reshape(-1)
-        combined = torch.cat([c_flat, p_flat])
-        if combined.shape[0] >= self.rag.d_embed:
-            emb = combined[:self.rag.d_embed]
-        else:
-            emb = torch.cat([combined, torch.zeros(self.rag.d_embed - combined.shape[0], device=combined.device)])
-        emb = F.normalize(emb, p=2, dim=-1)
-
-        similar = self.rag.retrieve(emb, top_k=3)
-        if not similar:
-            return 0.0
-
         self.solver.train()
-        # Use the best-matching solution's result tensor as target
-        target = similar[0][2].result_tensor.to(self.device)
+        if self.pipeline is not None:
+            self.pipeline.text_encoder.train()
+            self.pipeline.concept_head.train()
+            self.pipeline.problem_head.train()
 
-        c = concept.to(self.device)
-        p = problem.to(self.device)
+        # Differentiable forward pass for end-to-end backpropagation
+        if self.pipeline is not None and keywords is not None and question is not None:
+            c = self.pipeline.extract_concepts_differentiable(keywords)
+            p = self.pipeline.extract_problems_differentiable(question)
+        else:
+            c = concept.to(self.device)
+            p = problem.to(self.device)
+
+        spec_vec = p.get_formal_specification()
 
         pred_solution = self.solver([c], p)
         pred = pred_solution.result_tensor
-        loss = F.mse_loss(pred, target)
+
+        # Recommendation: Aspect-specific training target to preserve structured partitioning
+        pred_proj = pred[0]  # First aspect (ontological scaffolding) verified by spec
+        loss_spec = F.mse_loss(pred_proj, spec_vec)
+
+        # Recommendation: Apply constraint violation penalty to prevent boundary violations
+        constraints = p.get_constraint_vector()
+        limitations = c.limitations_risks
+        violation = self.solver.constraint_mask.compute_violation_score(constraints, limitations)
+        loss = loss_spec + 0.5 * violation.mean()
 
         self.optimizer.zero_grad()
         loss.backward()
@@ -168,17 +189,29 @@ class SelfLearningLoop:
 
         data = self.rag.get_consolidation_data(candidates)
         self.solver.train()
+        if self.pipeline is not None:
+            self.pipeline.text_encoder.train()
+            self.pipeline.concept_head.train()
+            self.pipeline.problem_head.train()
 
         total_loss = 0.0
         for _ in range(self.cfg.consolidation_epochs):
             for concept, problem, solution in data:
                 c = concept.to(self.device)
                 p = problem.to(self.device)
-                target = solution.result_tensor.to(self.device)
+                spec_vec = p.get_formal_specification()
 
                 pred_solution = self.solver([c], p)
                 pred = pred_solution.result_tensor
-                loss = F.mse_loss(pred, target)
+
+                # Aspect-specific training and constraint violation penalties in consolidation
+                pred_proj = pred[0]
+                loss_spec = F.mse_loss(pred_proj, spec_vec)
+
+                constraints = p.get_constraint_vector()
+                limitations = c.limitations_risks
+                violation = self.solver.constraint_mask.compute_violation_score(constraints, limitations)
+                loss = loss_spec + 0.5 * violation.mean()
 
                 self.optimizer.zero_grad()
                 loss.backward()

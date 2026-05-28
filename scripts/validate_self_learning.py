@@ -83,7 +83,7 @@ def main():
         element_dim=element_dim,
         device=device
     )
-    loop = SelfLearningLoop(cfg)
+    loop = SelfLearningLoop(cfg, pipeline=pipeline)
 
     # Pre-seed RAG with mathematically aligned, clean exemplars so the solver learns semantic mapping
     print("Pre-seeding LatentRAG with mathematically aligned concept-problem-solution exemplars...")
@@ -139,7 +139,7 @@ def main():
             loop.stats.record_attempt(True)
         else:
             # Failure triggers local backprop
-            loss_val = loop._train_on_failure(concept, problem)
+            loss_val = loop._train_on_failure(concept, problem, keywords=keywords, question=question)
             loop.stats.record_attempt(False)
             loop.stats.loss_history.append(loss_val)
 

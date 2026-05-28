@@ -251,6 +251,13 @@ class TextToConceptPipeline:
         concept.metadata = {"source_tokens": str(n_tokens), "compression": f"{n_tokens / NUM_ELEMENTS:.1f}x"}
         return [concept]
 
+    def extract_concepts_differentiable(self, text: str) -> ConceptTensor:
+        """Extract concept structure from text while preserving the computation graph."""
+        token_ids = self._tokenise(text)
+        hidden = self.text_encoder(token_ids)
+        elements = self.concept_head(hidden)  # (1, 10, d)
+        return ConceptTensor.from_tensor(elements[0])
+
     @torch.no_grad()
     def extract_problems(self, text: str) -> List[ProblemTensor]:
         """Extract problem structures from raw text.
@@ -274,6 +281,13 @@ class TextToConceptPipeline:
         problem = ProblemTensor.from_tensor(elements[0].cpu())
         problem.metadata = {"source_tokens": str(n_tokens)}
         return [problem]
+
+    def extract_problems_differentiable(self, text: str) -> ProblemTensor:
+        """Extract problem structure from text while preserving the computation graph."""
+        token_ids = self._tokenise(text)
+        hidden = self.text_encoder(token_ids)
+        elements = self.problem_head(hidden)  # (1, 10, d)
+        return ProblemTensor.from_tensor(elements[0])
 
     @torch.no_grad()
     def extract_batch(
