@@ -33,3 +33,7 @@ tensorboard>=2.14.0
 
 # Optional: sentence transformers for concept embedding
 # sentence-transformers>=2.2.0
+
+# Hugging Face integration for dataset loading & pipeline
+datasets>=2.14.0
+transformers>=4.33.0
