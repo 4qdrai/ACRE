@@ -312,11 +312,17 @@ class LARE(nn.Module):
         torch.Tensor
             Shape ``(d,)`` — gated operator output.
         """
+        # Compute softmax gating weights for strict convex combination (Lipschitz ≤ 1)
+        gate_logits = torch.cat(
+            [self.operator_gates[m](formal_reqs) for m in range(self.num_operators)],
+            dim=-1,
+        )  # (M,)
+        gate_weights = F.softmax(gate_logits, dim=-1)  # (M,) — sums to 1
+
         output = torch.zeros_like(concept_element)
         for m in range(self.num_operators):
-            gate = torch.sigmoid(self.operator_gates[m](formal_reqs))  # (1,)
             op_result = self.operators[m](concept_element, context)    # (d,)
-            output = output + gate * op_result
+            output = output + gate_weights[m].unsqueeze(-1) * op_result
         return output
 
     def _single_step(
@@ -385,7 +391,7 @@ class LARE(nn.Module):
 
             # Strict differentiable Gram-Schmidt projection per element
             dot_val = (masked_output * constraints.unsqueeze(0)).sum(dim=-1, keepdim=True)  # (10, 1)
-            norm_sq = (constraints * constraints).sum() + 1e-8
+            norm_sq = torch.clamp((constraints * constraints).sum(), min=1e-5)
             proj = (dot_val / norm_sq) * constraints.unsqueeze(0)  # (10, d)
             masked_output = masked_output - proj
 
@@ -600,7 +606,7 @@ class LARE(nn.Module):
         # to guarantee zero boundary violation
         constraints = problem.get_constraint_vector()  # (d,)
         dot_val = (result_tensor * constraints.unsqueeze(0)).sum(dim=-1, keepdim=True)  # (10, 1)
-        norm_sq = (constraints * constraints).sum(dim=-1, keepdim=True) + 1e-8
+        norm_sq = torch.clamp((constraints * constraints).sum(dim=-1, keepdim=True), min=1e-5)
         proj = (dot_val / norm_sq) * constraints.unsqueeze(0)
         result_tensor = result_tensor - proj
 
@@ -686,12 +692,17 @@ class LARE(nn.Module):
             for idx in range(num_elements):
                 c_element = concept_batched[:, idx, :]  # (B, d)
                 
-                # Apply each operator head with gating
+                # Apply each operator head with softmax gating (strict convex combination)
+                gate_logits = torch.cat(
+                    [self.operator_gates[m](formal_reqs) for m in range(self.num_operators)],
+                    dim=-1,
+                )  # (B, M)
+                gate_weights = F.softmax(gate_logits, dim=-1)  # (B, M)
+
                 op_output = torch.zeros_like(c_element)
                 for m in range(self.num_operators):
-                    gate = torch.sigmoid(self.operator_gates[m](formal_reqs))  # (B, 1)
                     op_result = self.operators[m](c_element, dynamic_context)  # (B, d)
-                    op_output = op_output + gate * op_result
+                    op_output = op_output + gate_weights[:, m].unsqueeze(-1) * op_result
                 op_outputs.append(op_output)
                 
             # Keep the (B, 10, d) manifold intact — no mean pooling
@@ -703,7 +714,7 @@ class LARE(nn.Module):
             
             # Strict differentiable Gram-Schmidt projection per element
             dot_val = (masked_output * constraints.unsqueeze(1)).sum(dim=-1, keepdim=True)  # (B, 10, 1)
-            norm_sq = (constraints * constraints).sum(dim=-1, keepdim=True).unsqueeze(1) + 1e-8  # (B, 1, 1)
+            norm_sq = torch.clamp((constraints * constraints).sum(dim=-1, keepdim=True).unsqueeze(1), min=1e-5)  # (B, 1, 1)
             proj = (dot_val / norm_sq) * constraints.unsqueeze(1)  # (B, 10, d)
             masked_output = masked_output - proj
             
@@ -724,7 +735,7 @@ class LARE(nn.Module):
         
         # Apply strict differentiable Gram-Schmidt projection on final output
         dot_val = (result_tensor * constraints.unsqueeze(1)).sum(dim=-1, keepdim=True)  # (B, 10, 1)
-        norm_sq = (constraints * constraints).sum(dim=-1, keepdim=True).unsqueeze(1) + 1e-8  # (B, 1, 1)
+        norm_sq = torch.clamp((constraints * constraints).sum(dim=-1, keepdim=True).unsqueeze(1), min=1e-5)  # (B, 1, 1)
         proj = (dot_val / norm_sq) * constraints.unsqueeze(1)
         result_tensor = result_tensor - proj
         

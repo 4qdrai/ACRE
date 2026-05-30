@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 ACRE Concept Distillation Script
 =================================
@@ -6,7 +6,7 @@ Extracts structured 10-element Concept and Problem Formulation (GPF) structures
 from unstructured text. This is the key data pipeline that transforms raw domain
 knowledge into the dense tensor representations used by F-LACA.
 
-Think of it like a "compiler" for knowledge — it reads plain English (or any text)
+Think of it like a "compiler" for knowledge â€” it reads plain English (or any text)
 and outputs structured JSON concept definitions with all 10 required elements.
 
 Usage:
@@ -34,7 +34,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Optional
 
-# ── Logging ──────────────────────────────────────────────────────────
+# â”€â”€ Logging â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -43,17 +43,17 @@ logging.basicConfig(
 logger = logging.getLogger("acre.distill")
 
 
-# ── Data Structures ─────────────────────────────────────────────────
+# â”€â”€ Data Structures â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 # The 10 elements of a Formalized Concept, matching the F-LACA spec
 CONCEPT_ELEMENT_NAMES = [
     "ontological_scaffolding",   # Element 1: Definitions, taxonomy, modular composition
-    "abstraction_level",         # Element 2: Level 1-4 (meta → concrete)
+    "abstraction_level",         # Element 2: Level 1-4 (meta â†’ concrete)
     "axiomatic_base",            # Element 3: Fundamental truths and formal axioms
     "relational_network",        # Element 4: SysML relations between subconcepts
     "inferential_framework",     # Element 5: Deduction and reasoning patterns
     "methodological_apparatus",  # Element 6: Methods, guidelines, constraints
-    "illustrative_corpus",       # Element 7: Code examples, illustrative instances
+    "illustrative_code",       # Element 7: Code examples, illustrative instances
     "goal_orientation",          # Element 8: Problem space, domain, target utility
     "limitations_risks",         # Element 9: Known limitations, risks, mitigations
     "inter_concept_relations",   # Element 10: Links to other concepts, synergies
@@ -66,7 +66,7 @@ GPF_ELEMENT_NAMES = [
     "formal_specification",      # Element 3: Mathematical/formal requirements
     "kpis_metrics",              # Element 4: Success criteria
     "verification_stubs",        # Element 5: Python test stubs / evaluation code
-    "constraints_context",       # Element 6: Operational constraints (the Φ mask source)
+    "constraints_context",       # Element 6: Operational constraints (the Î¦ mask source)
     "input_output_spec",         # Element 7: Data formats and interfaces
     "domain_context",            # Element 8: Application domain
     "risk_assessment",           # Element 9: Failure modes
@@ -122,7 +122,7 @@ class ExtractionStats:
             self.compression_ratio = self.total_output_chars / self.total_input_chars
 
 
-# ── Rule-Based Extraction ────────────────────────────────────────────
+# â”€â”€ Rule-Based Extraction â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 # Heuristic patterns to identify concept elements from text
 SECTION_PATTERNS = {
@@ -148,7 +148,7 @@ SECTION_PATTERNS = {
         r"(?i)(method|algorithm|procedure|technique|approach|guideline|protocol)",
         r"(?i)(how\s+to|step[s]?\s+\d|workflow|process|pipeline)",
     ],
-    "illustrative_corpus": [
+    "illustrative_code": [
         r"(?i)(example|illustrat|instance|sample|demonstration|code|implement)",
         r"(?i)(```|def\s+\w+|class\s+\w+|import\s+\w+)",
     ],
@@ -277,7 +277,7 @@ def generate_concept_id(name: str, domain: str) -> str:
     return f"C-{domain_prefix}-{slug[:30]}"
 
 
-# ── Main Extraction Pipeline ────────────────────────────────────────
+# â”€â”€ Main Extraction Pipeline â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def distill_from_text(
     text: str,
@@ -290,7 +290,7 @@ def distill_from_text(
     Args:
         text: The raw text to distill.
         source_file: Path to the source file (for metadata).
-        mode: Extraction mode — "rule-based" or "model" (future).
+        mode: Extraction mode â€” "rule-based" or "model" (future).
 
     Returns:
         List of ConceptEntry objects.
@@ -333,7 +333,7 @@ def _compute_confidence(elements: dict) -> float:
 
     # Bonus for having core elements (1, 3, 7)
     core_bonus = 0
-    core_elements = ["ontological_scaffolding", "axiomatic_base", "illustrative_corpus"]
+    core_elements = ["ontological_scaffolding", "axiomatic_base", "illustrative_code"]
     for elem in core_elements:
         if elements.get(elem, "").strip():
             core_bonus += 0.1
@@ -389,13 +389,13 @@ def build_concept_library(
     return library
 
 
-# ── CLI ──────────────────────────────────────────────────────────────
+# â”€â”€ CLI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def parse_args():
     parser = argparse.ArgumentParser(
         prog="acre-distill",
         description=(
-            "ACRE Concept Distillation — Extract structured 10-element concepts "
+            "ACRE Concept Distillation â€” Extract structured 10-element concepts "
             "from unstructured text documents."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -468,7 +468,7 @@ def main():
     stats = ExtractionStats()
     all_concepts: list[ConceptEntry] = []
 
-    # ── Collect input files ──────────────────────────────────────────
+    # â”€â”€ Collect input files â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     files_to_process: list[str] = []
 
     if args.input:
@@ -488,7 +488,7 @@ def main():
     logger.info(f"Found {len(files_to_process)} file(s) to process.")
     stats.total_input_files = len(files_to_process)
 
-    # ── Process files ────────────────────────────────────────────────
+    # â”€â”€ Process files â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     for filepath in sorted(files_to_process):
         try:
             text = Path(filepath).read_text(encoding="utf-8", errors="replace")
@@ -500,7 +500,7 @@ def main():
         concepts = process_file(filepath, mode=args.mode)
         all_concepts.extend(concepts)
 
-    # ── Compute stats ────────────────────────────────────────────────
+    # â”€â”€ Compute stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     stats.total_concepts_extracted = len(all_concepts)
     stats.complete_concepts = sum(1 for c in all_concepts if c.is_complete())
     stats.partial_concepts = stats.total_concepts_extracted - stats.complete_concepts
@@ -513,9 +513,9 @@ def main():
     stats.processing_time_seconds = time.time() - start_time
     stats.compute_derived()
 
-    # ── Output ───────────────────────────────────────────────────────
+    # â”€â”€ Output â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if args.dry_run:
-        logger.info("DRY RUN — not saving output.")
+        logger.info("DRY RUN â€” not saving output.")
         for c in all_concepts:
             print(f"\n{'='*60}")
             print(f"  ID:     {c.id}")
@@ -534,7 +534,7 @@ def main():
         output_path.write_text(json.dumps(library, indent=2, ensure_ascii=False), encoding="utf-8")
         logger.info(f"Concept library saved to: {args.output}")
 
-    # ── Statistics ───────────────────────────────────────────────────
+    # â”€â”€ Statistics â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if args.stats or args.dry_run:
         print(f"\n{'='*60}")
         print("  Extraction Statistics")
@@ -555,3 +555,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

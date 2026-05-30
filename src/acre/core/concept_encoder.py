@@ -215,8 +215,8 @@ class ConceptEncoder(nn.Module):
         self.d_concept = d_concept
         self.num_elements = NUM_CONCEPT_ELEMENTS
 
-        # Positional encoding
-        self.pos_encoding = PositionalEncoding(d_model, max_seq_len, dropout)
+        # Extra positions for CLS tokens prepended before the sequence
+        self.pos_encoding = PositionalEncoding(d_model, max_seq_len + NUM_CONCEPT_ELEMENTS, dropout)
 
         # Transformer backbone
         encoder_layer = nn.TransformerEncoderLayer(
@@ -362,7 +362,8 @@ class ProblemEncoder(nn.Module):
         self.d_problem = d_problem
         self.num_elements = NUM_PROBLEM_ELEMENTS
 
-        self.pos_encoding = PositionalEncoding(d_model, max_seq_len, dropout)
+        # Extra positions for CLS tokens prepended before the sequence
+        self.pos_encoding = PositionalEncoding(d_model, max_seq_len + NUM_PROBLEM_ELEMENTS, dropout)
 
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=d_model,

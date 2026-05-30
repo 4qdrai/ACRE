@@ -342,7 +342,7 @@ class ConceptAlgebra(nn.Module):
             
             # Exact orthogonal projection difference: e1_ortho = e1 - proj_e2(e1)
             dot_val = (e1 * e2).sum(dim=-1, keepdim=True)
-            norm_sq = (e2 * e2).sum(dim=-1, keepdim=True) + 1e-8
+            norm_sq = torch.clamp((e2 * e2).sum(dim=-1, keepdim=True), min=1e-5)
             proj = (dot_val / norm_sq) * e2
             diff_geom = e1 - proj
             
@@ -379,7 +379,7 @@ class ConceptAlgebra(nn.Module):
             
             # Orthogonal projection: project e1 onto the subspace spanned by e2
             dot_val = (e1 * e2).sum(dim=-1, keepdim=True)
-            norm_sq = (e2 * e2).sum(dim=-1, keepdim=True) + 1e-8
+            norm_sq = torch.clamp((e2 * e2).sum(dim=-1, keepdim=True), min=1e-5)
             proj = (dot_val / norm_sq) * e2
             outputs.append(self.diff_norms[k](proj))
 
@@ -434,7 +434,7 @@ class ConceptAlgebra(nn.Module):
             
             # Negation is the projection of the base onto the orthogonal complement of c
             dot_val = (e_base * e_c).sum(dim=-1, keepdim=True)
-            norm_sq = (e_c * e_c).sum(dim=-1, keepdim=True) + 1e-8
+            norm_sq = torch.clamp((e_c * e_c).sum(dim=-1, keepdim=True), min=1e-5)
             proj = (dot_val / norm_sq) * e_c
             neg_geom = e_base - proj
             outputs.append(self.diff_norms[k](neg_geom))

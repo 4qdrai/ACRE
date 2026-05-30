@@ -58,7 +58,8 @@ def main():
     except Exception as e:
         print(f"Error loading from HF, falling back to local inspection sample: {e}")
         local_sample_path = os.path.join(
-            "C:\\Users\\User\\.gemini\\antigravity\\brain\\b5556f0b-8f2c-4bf2-a0cb-3a4828698ae9\\scratch\\inspect_hf_dataset.json"
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "data", "samples", "inspect_hf_dataset.json"
         )
         with open(local_sample_path, "r", encoding="utf-8") as f:
             local_data = json.load(f)

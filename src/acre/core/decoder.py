@@ -365,7 +365,10 @@ class SolutionDecoder(nn.Module):
 
         # Predict or use given length
         if max_length is None:
-            length = self._predict_length(solution_flat[0])
+            # Predict per-batch-item and use the maximum
+            logits = self.length_predictor(solution_flat)  # (B, max_output_len)
+            predicted_lens = logits.argmax(dim=-1) + 1     # (B,)
+            length = min(int(predicted_lens.max().item()), self.max_output_len)
         else:
             length = min(max_length, self.max_output_len)
 

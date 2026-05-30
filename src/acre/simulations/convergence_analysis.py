@@ -70,7 +70,7 @@ def contraction_operator(
     Returns:
         Updated state T(c), shape (D,).
     """
-    return kappa * np.tanh(W @ c + b) + (1 - kappa) * np.zeros_like(c)
+    return kappa * np.tanh(W @ c + b) + (1 - kappa) * c
 
 
 def iterate_to_convergence(

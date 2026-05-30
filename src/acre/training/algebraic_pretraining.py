@@ -101,12 +101,18 @@ class LARERefiner(nn.Module):
         self.kappa = nn.Parameter(torch.tensor(0.5))
 
     def forward(self, c: Tensor) -> Tensor:
-        """One refinement step: c -> T(c). Operates on (B, 10, d) -> (B, 10, d)."""
+        """One refinement step: c -> T(c). Operates on (B, 10, d) -> (B, 10, d).
+        
+        Uses the Krasnoselskii-Mann averaged mapping:
+            T(c) = (1 - κ) · c + κ · f(c)
+        which is strictly contractive when κ ∈ (0, 1) and f is 1-Lipschitz.
+        """
         orig_shape = c.shape
         flat = c.reshape(c.size(0), -1) if c.dim() == 3 else c.reshape(-1)
         residual = self.refine(flat)
         kappa_clamped = torch.sigmoid(self.kappa)  # Always in (0, 1)
-        result = flat + kappa_clamped * residual
+        # Krasnoselskii-Mann averaged mapping: (1-κ)·x + κ·f(x)
+        result = (1.0 - kappa_clamped) * flat + kappa_clamped * residual
         return result.reshape(orig_shape)
 
 

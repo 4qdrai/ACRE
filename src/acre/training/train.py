@@ -249,21 +249,39 @@ def train_self_learning(args: argparse.Namespace, metrics: MetricsLogger, ckpt_p
     # Load algebraic checkpoint weights into the LARE solver
     if ckpt_path and os.path.exists(ckpt_path):
         state = torch.load(ckpt_path, map_location=args.device, weights_only=False)
-        if "algebra" in state:
-            loop.solver.algebra = loop.solver.algebra  # ensure it exists
+        loaded_any = False
+        
+        # Load state_refiner weights from pretrained LARERefiner
+        # The checkpoint's "refiner" was trained as a Krasnoselskii-Mann averaged mapping
+        # with the same architecture as LARE.state_refiner (spectral_norm + Tanh)
+        if "refiner" in state:
             try:
-                from acre.core.algebra import ConceptAlgebra
-                loop.solver.algebra.load_state_dict(state["algebra"], strict=False)
-                print(f"  Loaded algebraic algebra weights into LARE solver")
+                loop.solver.state_refiner.load_state_dict(state["refiner"], strict=False)
+                print(f"  ✓ Loaded refiner weights into LARE state_refiner")
+                loaded_any = True
             except Exception as e:
-                logger.warning(f"Could not load algebra weights: {e}")
+                logger.warning(f"Could not load refiner weights: {e}")
+        
+        # Load constraint mask Φ weights
         if "phi_mask" in state:
             try:
                 loop.solver.constraint_mask.load_state_dict(state["phi_mask"], strict=False)
-                print(f"  Loaded constraint mask weights into LARE solver")
+                print(f"  ✓ Loaded constraint mask weights into LARE constraint_mask")
+                loaded_any = True
             except Exception as e:
                 logger.warning(f"Could not load phi_mask weights: {e}")
-        logger.info(f"Loaded algebraic checkpoint for self-learning phase: {ckpt_path}")
+        
+        # Note: checkpoint "algebra" (ConceptAlgebra / BilinearElementOp) is architecturally
+        # incompatible with LARE's AlgebraicOperatorHead — they have different structures.
+        # The refiner + constraint_mask are the transferable components.
+        if "algebra" in state:
+            logger.info("Algebraic checkpoint contains 'algebra' (ConceptAlgebra) weights — "
+                       "these are not directly transferable to LARE's operator heads.")
+        
+        if loaded_any:
+            logger.info(f"Loaded algebraic checkpoint for self-learning phase: {ckpt_path}")
+        else:
+            logger.warning(f"No compatible weights found in checkpoint: {ckpt_path}")
 
     stats = loop.run()
 

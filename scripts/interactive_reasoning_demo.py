@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 interactive_reasoning_demo.py
 
@@ -55,7 +55,7 @@ def main():
                     "elements": {
                         "ontological_scaffolding": "Linear algebra is the branch of mathematics concerning linear equations, vector spaces, and matrices.",
                         "axiomatic_base": "Vector spaces rest on axioms of commutativity, associativity, and distributivity.",
-                        "illustrative_corpus": "import numpy as np; A = np.array([[1, 2], [3, 4]])"
+                        "illustrative_code": "import numpy as np; A = np.array([[1, 2], [3, 4]])"
                     }
                 },
                 {
@@ -63,7 +63,7 @@ def main():
                     "elements": {
                         "ontological_scaffolding": "Calculus is the mathematical study of continuous change, focusing on derivatives and integrals.",
                         "axiomatic_base": "Calculus is built upon limits, completeness of real numbers, and the fundamental theorem.",
-                        "illustrative_corpus": "def derivative(f, x, dx=1e-5): return (f(x + dx) - f(x)) / dx"
+                        "illustrative_code": "def derivative(f, x, dx=1e-5): return (f(x + dx) - f(x)) / dx"
                     }
                 }
             ]
@@ -175,7 +175,7 @@ def main():
     flat_sol = solution_tensor.result_tensor.reshape(-1).detach().cpu().numpy()
 
     vectors = [flat_la, flat_calc, flat_comp, flat_prob, flat_sol]
-    labels = ["Linear Algebra\n(Concept 1)", "Calculus\n(Concept 2)", "Composed Concept\n(Concept 1 ⊕ 2)", "Geodesic Problem\n(Problem)", "Steering Control\n(Solution)"]
+    labels = ["Linear Algebra\n(Concept 1)", "Calculus\n(Concept 2)", "Composed Concept\n(Concept 1 âŠ• 2)", "Geodesic Problem\n(Problem)", "Steering Control\n(Solution)"]
 
     num_vecs = len(vectors)
     sim_matrix = np.zeros((num_vecs, num_vecs))
@@ -223,9 +223,9 @@ def main():
     # Description box below the heatmap
     desc_text = (
         "Key Geometric Insights:\n"
-        "• Composed Concept is highly correlated with both Linear Algebra & Calculus (zero-shot composition).\n"
-        "• Geodesic Problem shows positive alignment with the Composed Concept (direct task-knowledge binding).\n"
-        "• Steering Control Solution maps successfully back to the problem specifications in latent space."
+        "â€¢ Composed Concept is highly correlated with both Linear Algebra & Calculus (zero-shot composition).\n"
+        "â€¢ Geodesic Problem shows positive alignment with the Composed Concept (direct task-knowledge binding).\n"
+        "â€¢ Steering Control Solution maps successfully back to the problem specifications in latent space."
     )
     props = dict(boxstyle="round", facecolor="#ebf8ff", edgecolor="#bee3f8", alpha=0.9)
     plt.figtext(0.12, 0.02, desc_text, fontsize=9.5, bbox=props, fontweight="medium", linespacing=1.4)
@@ -242,3 +242,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

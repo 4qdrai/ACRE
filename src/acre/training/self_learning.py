@@ -206,8 +206,8 @@ class SelfLearningLoop:
                 pred_solution = self.solver([c], p)
                 pred = pred_solution.result_tensor
 
-                # Aspect-specific training and constraint violation penalties in consolidation
-                pred_proj = pred[0]
+                # Aspect-specific training target: align formal_specification (index 3) with spec
+                pred_proj = pred[3]
                 loss_spec = F.mse_loss(pred_proj, spec_vec)
 
                 constraints = p.get_constraint_vector()
