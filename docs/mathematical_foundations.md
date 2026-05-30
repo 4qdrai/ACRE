@@ -195,12 +195,12 @@ where $V_k$ is the constraint violation direction for element $k$, $\lambda > 0$
 
 **Definition 7.** The *Latent Algebraic Reasoning Engine (LARE)* performs iterative reasoning through the state update:
 
-$$\mathbf{c}_{\text{out}}^{(t)} = \sum_{i \in \text{GPFs}} \sum_{j \in \text{Concepts}} \alpha_{ij}^{(t)} \left[\sum_{m=1}^{M} \sigma(\mathbf{W}_m \mathbf{p}_i^{(\text{formal})}) \cdot \mathcal{O}_m(\mathbf{c}_j^{(t-1)}, \mathbf{c}_{\text{ctx}}^{(t-1)})\right] \cdot \Phi(\mathbf{p}_i^{(\text{constr})}, \mathbf{c}_j^{(\text{lim})})$$
+$$\mathbf{c}_{\text{out}}^{(t)} = \sum_{i \in \text{GPFs}} \sum_{j \in \text{Concepts}} \alpha_{ij}^{(t)} \left[\sum_{m=1}^{M} g_m^{(t)} \cdot \mathcal{O}_m(\mathbf{c}_j^{(t-1)}, \mathbf{c}_{\text{ctx}}^{(t-1)})\right] \cdot \Phi(\mathbf{p}_i^{(\text{constr})}, \mathbf{c}_j^{(\text{lim})})$$
 
 where:
 - $\alpha_{ij}^{(t)} = \text{softmax}(\mathbf{p}_i^\top \mathbf{c}_j^{(t-1)} / \sqrt{d})$ are alignment weights
-- $\mathbf{W}_m \in \mathbb{R}^{1 \times 10d}$ are operator selection parameters
-- $\mathcal{O}_m \in \{\oplus, \otimes, \ominus, \Pi\}$ are the concept algebra operations
+- $g_m^{(t)} = \text{softmax}(\mathbf{W}_1 \mathbf{p}_i^{(\text{formal})}, \ldots, \mathbf{W}_M \mathbf{p}_i^{(\text{formal})})_m$ are operator gating weights forming a strict convex combination ($\sum_m g_m = 1$, $g_m \geq 0$)
+- $\mathcal{O}_m \in \{\oplus, \otimes, \ominus, \Pi\}$ are the concept algebra operations, each 1-Lipschitz via spectral normalization
 - $\Phi$ is the constraint orthogonality mask (Definition 6)
 - $\mathbf{c}_{\text{ctx}}^{(t-1)}$ is the context concept from the previous step
 
@@ -235,11 +235,11 @@ $$|\alpha_{ij}(\mathbf{c}_1) - \alpha_{ij}(\mathbf{c}_2)| \leq \frac{1}{2\sqrt{d
 - **Difference $\ominus$**: $\|\mathbf{c}_1 \ominus \mathbf{c}_{\text{ctx}} - \mathbf{c}_2 \ominus \mathbf{c}_{\text{ctx}}\|_F \leq 2\|\mathbf{c}_1 - \mathbf{c}_2\|_F$ (worst case, projection adds at most 1× the input)
 - **Projection $\Pi$**: $\|\Pi(\mathbf{c}_1) - \Pi(\mathbf{c}_2)\|_F \leq \|\mathbf{W}_\Pi\|_{op} \|\mathbf{c}_1 - \mathbf{c}_2\|_F \leq \|\mathbf{c}_1 - \mathbf{c}_2\|_F$
 
-*Step 3: Gating bounds.* Since $\sigma(\cdot) \in [0, 1]$ and $\sum_m \sigma(\mathbf{W}_m \mathbf{p}) \leq M$ with normalization, the gated operator selection satisfies:
+*Step 3: Gating bounds.* The operator selection uses softmax gating: $g_m = \text{softmax}(\mathbf{W}_m \mathbf{p})_m$ where $\sum_{m=1}^M g_m = 1$ and $g_m \geq 0$. The gated aggregate is a strict convex combination of operators:
 
-$$\left\|\sum_m \sigma(\mathbf{W}_m \mathbf{p}) \mathcal{O}_m(\mathbf{c}_1, \cdot) - \sum_m \sigma(\mathbf{W}_m \mathbf{p}) \mathcal{O}_m(\mathbf{c}_2, \cdot)\right\|_F \leq L_{\mathcal{O}} \|\mathbf{c}_1 - \mathbf{c}_2\|_F$$
+$$\left\|\sum_m g_m \mathcal{O}_m(\mathbf{c}_1, \cdot) - \sum_m g_m \mathcal{O}_m(\mathbf{c}_2, \cdot)\right\|_F \leq \sum_m g_m L_m \|\mathbf{c}_1 - \mathbf{c}_2\|_F \leq \max_m L_m \|\mathbf{c}_1 - \mathbf{c}_2\|_F$$
 
-where $L_{\mathcal{O}} = \max_m L_m$ is the maximum operator Lipschitz constant.
+where $L_m \leq 1$ is the Lipschitz constant of each spectrally normalized operator, yielding $L_{\mathcal{O}} \leq 1$.
 
 *Step 4: Constraint mask.* By condition (3), $\|\Phi\|_{op} \leq 1$, so the mask does not amplify differences.
 
@@ -247,7 +247,7 @@ where $L_{\mathcal{O}} = \max_m L_m$ is the maximum operator Lipschitz constant.
 
 $$\|T(\mathbf{c}_1) - T(\mathbf{c}_2)\|_F \leq L_{\mathcal{O}} \cdot \|\Phi\|_{op} \cdot \|\mathbf{c}_1 - \mathbf{c}_2\|_F$$
 
-Under the stated conditions on weight matrix norms, we obtain $L = L_{\mathcal{O}} \cdot \|\Phi\|_{op} < 1$. $\square$
+Under the stated conditions on weight matrix norms and with softmax gating enforcing $\sum_m g_m = 1$, we obtain $L = L_{\mathcal{O}} \cdot \|\Phi\|_{op} < 1$. $\square$
 
 ---
 

@@ -551,6 +551,51 @@ This project is licensed under the Apache License 2.0 — see the [LICENSE](LICE
 
 ---
 
+## 📋 Changelog
+
+### v1.5.0 — Round 5 Review Remediation (2026-05-30)
+
+**Critical mathematical fixes:**
+- **Softmax operator gating** — Replaced independent sigmoid gates (allowing aggregate Lipschitz constant up to M=4) with softmax (strict convex combination, Lipschitz ≤ 1), satisfying the Banach contraction theorem (`lare.py`)
+- **Krasnoselskii-Mann averaged mapping** — Fixed the LARERefiner iteration from the expansive `x + κ·f(x)` to the proper contraction `(1-κ)·x + κ·f(x)` (`algebraic_pretraining.py`)
+- **BF16 numerical stability** — Replaced all `+ 1e-8` epsilon values with `torch.clamp(min=1e-5)` across 10 sites in `lare.py`, `algebra.py` (BFloat16 rounds 1e-8 to 0.0)
+
+**Pipeline fixes:**
+- **Weight transfer** — Rewrote checkpoint loading to correctly map `refiner` → `state_refiner` and `phi_mask` → `constraint_mask` (was silently failing via `try/except` on non-existent `loop.solver.algebra`)
+- **Pred index alignment** — Fixed second `pred[0]` → `pred[3]` in `consolidate()` for formal specification alignment
+- **Batched decoder** — Length prediction now per-batch-item (was only using `solution_flat[0]`)
+- **Positional encoding** — Buffer sized to `max_seq_len + NUM_ELEMENTS` to prevent OOB crash when CLS tokens are prepended
+- **Convergence simulation** — Fixed averaged mapping to use `(1-κ)·c + κ·f(c)` instead of `(1-κ)·0 + κ·f(c)`
+
+**Data & documentation:**
+- Schema alignment: `illustrative_corpus` → `illustrative_code` in `seed_concepts.json` to match `concept_tensor.py`
+- Added missing `\begin{abstract}` in `scientific_paper.tex`
+- Removed hardcoded Windows path from `validate_self_learning.py`
+- Updated `mathematical_foundations.md` — Definition 7 and Lemma 1 now describe softmax gating
+
+### v1.4.0 — Round 4 Review (2026-05-30)
+- Fixed autoregressive SCAN evaluation (removed teacher forcing)
+- Fixed K-Means ARI evaluation (removed ground-truth label leaking)
+- Standardized data schema for self-learning pipeline
+
+### v1.3.0 — Round 3 Review (2026-05-29)
+- Integrated Anderson Acceleration for DEQ reasoning
+- Added continuous-time Flow Matching (Euler ODE) decoder
+- Strict Gram-Schmidt orthogonalization in forward pass
+
+### v1.2.0 — Round 2 Review (2026-05-28)
+- 1-Lipschitz constraints via Tanh + Spectral Normalization
+- Exact Gram-Schmidt projections for zero-hallucination
+- Deep Equilibrium (DEQ) solving
+
+### v1.1.0 — Round 1 Review (2026-05-27)
+- Initial implementation of F-LACA architecture
+- Concept Algebra with BilinearElementOp
+- LARE iterative reasoning engine
+- Self-learning loop with Latent RAG
+
+---
+
 <div align="center">
 
 *Built for the [SPRIND Next Frontier AI Challenge](https://www.sprind.org/en/challenges/next-frontier-ai) — €125M funding for the next S-curve of artificial intelligence.*
