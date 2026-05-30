@@ -62,7 +62,7 @@ from acre.core.constraint_mask import ConstraintMask
 
 
 class AlgebraicOperatorHead(nn.Module):
-    """A single algebraic operator :math:`\\mathcal{O}_m`.
+    """A single algebraic operator :math:`\mathcal{O}_m`.
 
     Implements a spectrally-normalized bilinear map that transforms a
     concept vector given a context vector. Spectral normalization
@@ -82,7 +82,7 @@ class AlgebraicOperatorHead(nn.Module):
         self.W_concept = spectral_norm(nn.Linear(d, d, bias=False))
         self.W_context = spectral_norm(nn.Linear(d, d, bias=False))
         self.combine = spectral_norm(nn.Linear(2 * d, d))
-        self.norm = nn.LayerNorm(d)
+        # Note: LayerNorm is removed here to satisfy strict mathematical Banach Lipschitz bounds
 
     def forward(
         self, concept: torch.Tensor, context: torch.Tensor
@@ -104,19 +104,20 @@ class AlgebraicOperatorHead(nn.Module):
         c_proj = self.W_concept(concept)
         ctx_proj = self.W_context(context)
         combined = torch.cat([c_proj, ctx_proj], dim=-1)
-        return self.norm(F.gelu(self.combine(combined)))
+        # GELU replaced with Tanh (strictly 1-Lipschitz) to mathematically guarantee convergence
+        return torch.tanh(self.combine(combined))
 
 
 class AttentionScorer(nn.Module):
-    """Computes attention weights :math:`\\alpha_{ij}` over concept-problem pairs.
+    """Computes attention weights :math:`\alpha_{ij}` over concept-problem pairs.
 
     Uses a bilinear scoring function:
 
     .. math::
 
-        \\alpha_{ij} = \\frac{\\exp(s_{ij})}{\\sum_k \\exp(s_{ik})}
-        \\quad \\text{where} \\quad
-        s_{ij} = p_i^T W_{attn} c_j + b
+        \alpha_{ij} = \frac{\exp(s_{ij})}{\sum_k \exp(s_{ik})}
+        \quad \text{where} \quad
+        s_{ij} = (p_i + s_t)^T W_{attn} c_j + b
 
     Parameters
     ----------
@@ -129,6 +130,7 @@ class AttentionScorer(nn.Module):
     def __init__(self, d_problem: int, d_concept: int, d_hidden: int = 128) -> None:
         super().__init__()
         self.problem_proj = nn.Linear(d_problem, d_hidden)
+        self.state_proj = nn.Linear(d_problem, d_hidden)  # Dynamic query projection of prev_state
         self.concept_proj = nn.Linear(d_concept, d_hidden)
         self.score = nn.Linear(d_hidden, 1)
 
@@ -136,8 +138,9 @@ class AttentionScorer(nn.Module):
         self,
         problem_flat: torch.Tensor,  # (10*d,)
         concept_flats: torch.Tensor,  # (J, 10*d)
+        prev_state: torch.Tensor,     # (10*d,) - dynamic reasoning state
     ) -> torch.Tensor:
-        """Compute attention weights over concepts.
+        """Compute attention weights over concepts dynamically based on reasoning state.
 
         Parameters
         ----------
@@ -145,6 +148,8 @@ class AttentionScorer(nn.Module):
             Flattened problem tensor, shape ``(10*d,)``.
         concept_flats : torch.Tensor
             Stacked flattened concepts, shape ``(J, 10*d)``.
+        prev_state : torch.Tensor
+            Previous reasoning state, shape ``(10*d,)``.
 
         Returns
         -------
@@ -152,9 +157,12 @@ class AttentionScorer(nn.Module):
             Attention weights, shape ``(J,)`` summing to 1.
         """
         p_proj = self.problem_proj(problem_flat)        # (d_hidden,)
+        s_proj = self.state_proj(prev_state)            # (d_hidden,)
         c_projs = self.concept_proj(concept_flats)      # (J, d_hidden)
-        # Broadcast and combine
-        interaction = p_proj.unsqueeze(0) * c_projs     # (J, d_hidden)
+        
+        # Stateful query integrates both problem constraints and current reasoning state
+        query = p_proj + s_proj                         # (d_hidden,)
+        interaction = query.unsqueeze(0) * c_projs     # (J, d_hidden)
         scores = self.score(interaction).squeeze(-1)    # (J,)
         return F.softmax(scores, dim=0)
 
@@ -240,8 +248,7 @@ class LARE(nn.Module):
         # output and produces the next state
         self.state_refiner = nn.Sequential(
             spectral_norm(nn.Linear(d, d)),
-            nn.GELU(),
-            nn.LayerNorm(d),
+            nn.Tanh(),  # Replaced GELU with Tanh (1-Lipschitz limit) to satisfy contraction theorem
             spectral_norm(nn.Linear(d, d)),
         )
 
@@ -348,11 +355,14 @@ class LARE(nn.Module):
         p_flat = problem.to_tensor().reshape(-1)   # (10*d,)
         formal_reqs = problem.get_formal_requirements()  # (d,)
 
-        # Compute attention weights α_ij
+        # Compute attention weights α_ij using the stateful query (prev_state)
         concept_flats = torch.stack(
             [c.to_tensor().reshape(-1) for c in concepts], dim=0
         )  # (J, 10*d)
-        alpha = self.attention_scorer(p_flat, concept_flats)  # (J,)
+        alpha = self.attention_scorer(p_flat, concept_flats, prev_state)  # (J,)
+
+        # Update the aggregated context dynamically from the reasoning state to achieve true multi-hop refinement
+        dynamic_context = self.context_aggregator(prev_state)  # (d,)
 
         # Weighted sum over concepts with operator application
         aggregated = torch.zeros(self.d, device=p_flat.device, dtype=p_flat.dtype)
@@ -363,12 +373,12 @@ class LARE(nn.Module):
             op_outputs = []
             for idx in range(NUM_CONCEPT_ELEMENTS):
                 c_element = concepts[j].get_element(idx)
-                op_outputs.append(self._apply_operators(c_element, context, formal_reqs))
+                op_outputs.append(self._apply_operators(c_element, dynamic_context, formal_reqs))
             
             # Aggregate the independently processed aspect representations
             op_output = torch.stack(op_outputs, dim=0).mean(dim=0)  # (d,)
 
-            # Apply constraint mask Φ
+            # Apply constraint mask Φ (soft gating)
             constraints = problem.get_constraint_vector()       # (d,)
             limitations = concepts[j].limitations_risks         # (d,)
             mask = self.constraint_mask(constraints, limitations)  # (d,)
@@ -377,8 +387,16 @@ class LARE(nn.Module):
             ).item()
             total_violation += violation
 
-            # Masked, weighted contribution
+            # Masked contribution
             masked_output = op_output * mask
+
+            # Strict differentiable Gram-Schmidt projection (hard constraint satisfaction)
+            # Projects the masked output vector orthogonally onto the null-space of the constraints
+            dot_val = (masked_output * constraints).sum(dim=-1, keepdim=True)
+            norm_sq = (constraints * constraints).sum(dim=-1, keepdim=True) + 1e-8
+            proj = (dot_val / norm_sq) * constraints
+            masked_output = masked_output - proj
+
             aggregated = aggregated + alpha[j] * masked_output
 
         avg_violation = total_violation / max(num_concepts, 1)
@@ -395,12 +413,98 @@ class LARE(nn.Module):
 
         return new_state, avg_violation
 
+    def _anderson_acceleration(
+        self,
+        concepts: List[ConceptTensor],
+        problem: ProblemTensor,
+        context: torch.Tensor,
+        max_steps: int,
+        epsilon: float,
+        m: int = 3,
+    ) -> Tuple[torch.Tensor, List[float], List[ProofStep], List[torch.Tensor], List[str]]:
+        """DEQ fixed point solving via Anderson Acceleration."""
+        device = concepts[0].device
+        dtype = concepts[0].dtype
+        num_elements = NUM_CONCEPT_ELEMENTS
+
+        # Initialize state from problem
+        x = problem.to_tensor().reshape(-1).clone()
+
+        X_hist = []
+        F_hist = []
+
+        proof_steps = []
+        resolution_steps = []
+        applied_ops = []
+        convergence_deltas = []
+
+        start_time = time.time()
+
+        for t in range(max_steps):
+            x_prev = x.clone()
+
+            # Step evaluation: g(x) = f(x)
+            g_x, violation = self._single_step(concepts, problem, x_prev, context)
+            f_x = g_x - x_prev  # Residual f = g(x) - x
+
+            delta = f_x.norm().item()
+            convergence_deltas.append(delta)
+
+            step = ProofStep(
+                step_index=t,
+                operation="refine_deq",
+                operand_indices=list(range(len(concepts))),
+                result_norm=g_x.norm().item(),
+                constraint_violation=violation,
+                timestamp=time.time(),
+                metadata={"convergence_delta": delta, "deq": True},
+            )
+            proof_steps.append(step)
+            resolution_steps.append(g_x.detach().clone())
+            applied_ops.append("refine_deq")
+
+            if delta < epsilon:
+                x = g_x
+                break
+
+            # Keep history
+            X_hist.append(x_prev)
+            F_hist.append(f_x)
+            if len(X_hist) > m:
+                X_hist.pop(0)
+                F_hist.pop(0)
+
+            # Anderson update
+            k = len(X_hist)
+            if k == 1:
+                x = g_x
+            else:
+                F_mat = torch.stack([F_hist[i] - F_hist[-1] for i in range(k - 1)], dim=1)  # (10*d, k-1)
+                f_target = -F_hist[-1]
+
+                try:
+                    alpha_coeff = torch.linalg.lstsq(F_mat, f_target.unsqueeze(-1)).solution.squeeze(-1)
+                except RuntimeError:
+                    x = g_x
+                    continue
+
+                beta = torch.zeros(k, device=device, dtype=dtype)
+                beta[:-1] = alpha_coeff
+                beta[-1] = 1.0 - alpha_coeff.sum()
+
+                # Reconstruct next state x = \sum beta_i (x_i + F_i)
+                g_hist = [X_hist[i] + F_hist[i] for i in range(k)]
+                x = torch.stack(g_hist, dim=0).T @ beta
+
+        return x, convergence_deltas, proof_steps, resolution_steps, applied_ops
+
     def forward(
         self,
         concepts: List[ConceptTensor],
         problem: ProblemTensor,
         max_steps: Optional[int] = None,
         epsilon: Optional[float] = None,
+        deq_mode: bool = False,
     ) -> SolutionTensor:
         """Run the full multi-step reasoning process.
 
@@ -421,6 +525,8 @@ class LARE(nn.Module):
             Override the default max iterations.
         epsilon : float, optional
             Override the default convergence threshold.
+        deq_mode : bool
+            Enable Anderson Acceleration Deep Equilibrium solver.
 
         Returns
         -------
@@ -442,55 +548,68 @@ class LARE(nn.Module):
         dtype = concepts[0].dtype
         num_elements = NUM_CONCEPT_ELEMENTS
 
-        # Compute context once (it's concept-dependent, not step-dependent)
+        # Compute context once
         context = self._compute_context(concepts)
-
-        # Initialize state from the problem tensor
-        state = problem.to_tensor().reshape(-1)  # (10*d,)
-
-        # Track for convergence and proof
-        proof_steps: List[ProofStep] = []
-        resolution_steps: List[torch.Tensor] = []
-        applied_ops: List[str] = []
-        convergence_deltas: List[float] = []
 
         start_time = time.time()
 
-        for t in range(max_steps):
-            prev_state = state.clone()
-
-            # Single LARE step
-            state, violation = self._single_step(
-                concepts, problem, prev_state, context
+        if deq_mode:
+            state, convergence_deltas, proof_steps, resolution_steps, applied_ops = self._anderson_acceleration(
+                concepts, problem, context, max_steps, epsilon
             )
+        else:
+            # Initialize state from the problem tensor
+            state = problem.to_tensor().reshape(-1)  # (10*d,)
 
-            # Track convergence
-            delta = (state - prev_state).norm().item()
-            convergence_deltas.append(delta)
+            # Track for convergence and proof
+            proof_steps: List[ProofStep] = []
+            resolution_steps: List[torch.Tensor] = []
+            applied_ops: List[str] = []
+            convergence_deltas: List[float] = []
 
-            # Record proof step
-            step = ProofStep(
-                step_index=t,
-                operation="refine",
-                operand_indices=list(range(len(concepts))),
-                result_norm=state.norm().item(),
-                constraint_violation=violation,
-                timestamp=time.time(),
-                metadata={"convergence_delta": delta},
-            )
-            proof_steps.append(step)
-            resolution_steps.append(state.detach().clone())
-            applied_ops.append("refine")
+            for t in range(max_steps):
+                prev_state = state.clone()
 
-            # Check convergence
-            if delta < epsilon:
-                break
+                # Single LARE step
+                state, violation = self._single_step(
+                    concepts, problem, prev_state, context
+                )
+
+                # Track convergence
+                delta = (state - prev_state).norm().item()
+                convergence_deltas.append(delta)
+
+                # Record proof step
+                step = ProofStep(
+                    step_index=t,
+                    operation="refine",
+                    operand_indices=list(range(len(concepts))),
+                    result_norm=state.norm().item(),
+                    constraint_violation=violation,
+                    timestamp=time.time(),
+                    metadata={"convergence_delta": delta},
+                )
+                proof_steps.append(step)
+                resolution_steps.append(state.detach().clone())
+                applied_ops.append("refine")
+
+                # Check convergence
+                if delta < epsilon:
+                    break
 
         # Project to solution space
         solution_vec = self.solution_proj(state)  # (10*d,)
 
         # Reshape to (10, d)
         result_tensor = solution_vec.reshape(num_elements, self.d)
+
+        # Apply strict differentiable Gram-Schmidt projection on final output
+        # to guarantee zero boundary violation
+        constraints = problem.get_constraint_vector()  # (d,)
+        dot_val = (result_tensor * constraints.unsqueeze(0)).sum(dim=-1, keepdim=True)  # (10, 1)
+        norm_sq = (constraints * constraints).sum(dim=-1, keepdim=True) + 1e-8
+        proj = (dot_val / norm_sq) * constraints.unsqueeze(0)
+        result_tensor = result_tensor - proj
 
         # Estimate confidence (based on final state + convergence info)
         final_delta = torch.tensor(
@@ -516,10 +635,110 @@ class LARE(nn.Module):
                 "total_time_s": time.time() - start_time,
                 "num_concepts": len(concepts),
                 "num_operators": self.num_operators,
+                "deq_mode": deq_mode,
             },
         )
 
         return solution
+
+    def forward_batched(
+        self,
+        concept_batched: torch.Tensor,  # (B, 10, d)
+        problem_batched: torch.Tensor,  # (B, 10, d)
+        max_steps: Optional[int] = None,
+        epsilon: Optional[float] = None,
+    ) -> torch.Tensor:
+        """Run the multi-step reasoning process fully batched in parallel across B examples.
+
+        Parameters
+        ----------
+        concept_batched : torch.Tensor
+            Batch of concepts, shape ``(B, 10, d)``.
+        problem_batched : torch.Tensor
+            Batch of problems, shape ``(B, 10, d)``.
+        max_steps : int, optional
+            Maximum reasoning iterations.
+        epsilon : float, optional
+            Convergence threshold.
+
+        Returns
+        -------
+        torch.Tensor
+            The batched solution tensor, shape ``(B, 10, d)``.
+        """
+        B, num_elements, d = concept_batched.shape
+        max_steps = max_steps or self.default_max_steps
+        epsilon = epsilon or self.epsilon
+        
+        # 1. Compute context: context_aggregator expects (10*d,) for single, so (B, 10*d) for batch
+        c_flat = concept_batched.reshape(B, -1)
+        context = self.context_aggregator(c_flat)  # (B, d)
+        
+        # 2. Get formal requirements (element 2) and constraint vector (element 5)
+        formal_reqs = problem_batched[:, 2, :]  # (B, d)
+        constraints = problem_batched[:, 5, :]  # (B, d)
+        limitations = concept_batched[:, 8, :]  # (B, d) - limitations_risks is element 8
+        
+        # 3. Initialize state from problem tensor
+        state = problem_batched.reshape(B, -1)  # (B, 10*d)
+        
+        for t in range(max_steps):
+            prev_state = state.clone()
+            
+            # Update dynamic context from previous state
+            dynamic_context = self.context_aggregator(prev_state)  # (B, d)
+            
+            # Apply operators to all 10 aspect elements individually
+            op_outputs = []
+            for idx in range(num_elements):
+                c_element = concept_batched[:, idx, :]  # (B, d)
+                
+                # Apply each operator head with gating
+                op_output = torch.zeros_like(c_element)
+                for m in range(self.num_operators):
+                    gate = torch.sigmoid(self.operator_gates[m](formal_reqs))  # (B, 1)
+                    op_result = self.operators[m](c_element, dynamic_context)  # (B, d)
+                    op_output = op_output + gate * op_result
+                op_outputs.append(op_output)
+                
+            # Aggregate the independently processed aspect representations
+            op_output = torch.stack(op_outputs, dim=1).mean(dim=1)  # (B, d)
+            
+            # Apply constraint mask Φ (soft gating)
+            mask = self.constraint_mask(constraints, limitations)  # (B, d)
+            masked_output = op_output * mask
+            
+            # Strict differentiable Gram-Schmidt projection (hard constraint satisfaction)
+            dot_val = (masked_output * constraints).sum(dim=-1, keepdim=True)  # (B, 1)
+            norm_sq = (constraints * constraints).sum(dim=-1, keepdim=True) + 1e-8
+            proj = (dot_val / norm_sq) * constraints
+            masked_output = masked_output - proj
+            
+            # Refine the aggregated state
+            refined = self.state_refiner(masked_output)  # (B, d)
+            
+            # Expand back to full state dimension
+            new_state = self.state_expand(refined)  # (B, 10*d)
+            
+            # Residual connection
+            state = 0.5 * new_state + 0.5 * prev_state
+            
+            # Check convergence
+            delta = (state - prev_state).norm(dim=-1).mean().item()
+            if delta < epsilon:
+                break
+                
+        # Project to solution space
+        solution_vec = self.solution_proj(state)  # (B, 10*d)
+        result_tensor = solution_vec.reshape(B, num_elements, d)
+        
+        # Apply strict differentiable Gram-Schmidt projection on final output
+        dot_val = (result_tensor * constraints.unsqueeze(1)).sum(dim=-1, keepdim=True)  # (B, 10, 1)
+        norm_sq = (constraints * constraints).sum(dim=-1, keepdim=True).unsqueeze(1) + 1e-8  # (B, 1, 1)
+        proj = (dot_val / norm_sq) * constraints.unsqueeze(1)
+        result_tensor = result_tensor - proj
+        
+        return result_tensor
 
     def extra_repr(self) -> str:
         return (

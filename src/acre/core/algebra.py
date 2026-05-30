@@ -323,12 +323,11 @@ class ConceptAlgebra(nn.Module):
     ) -> ConceptTensor | torch.Tensor:
         """Concept difference: :math:`c_1 \\ominus c_2`.
 
-        Captures what ``c1`` has that ``c2`` lacks, using both the
-        linear difference and a Hadamard interaction term. Supports both
-        ConceptTensor objects and raw batched/unbatched tensors.
+        Calculates what ``c1`` has that ``c2`` lacks using mathematically exact
+        orthogonal projections, ensuring structural consistency under algebraic subduction.
         """
-        t1 = c1.to_tensor() if isinstance(c1, ConceptTensor) else c1
-        t2 = c2.to_tensor() if isinstance(c2, ConceptTensor) else c2
+        t1 = c1.to_tensor() if hasattr(c1, "to_tensor") else c1
+        t2 = c2.to_tensor() if hasattr(c2, "to_tensor") else c2
 
         batched = t1.ndim == 3
         if not batched:
@@ -340,14 +339,109 @@ class ConceptAlgebra(nn.Module):
         for k in range(NUM_CONCEPT_ELEMENTS):
             e1 = t1[:, k, :]
             e2 = t2[:, k, :]
-            diff_part = self.diff_linear[k](e1 - e2)
+            
+            # Exact orthogonal projection difference: e1_ortho = e1 - proj_e2(e1)
+            dot_val = (e1 * e2).sum(dim=-1, keepdim=True)
+            norm_sq = (e2 * e2).sum(dim=-1, keepdim=True) + 1e-8
+            proj = (dot_val / norm_sq) * e2
+            diff_geom = e1 - proj
+            
+            # Learnable linear refinement preserving geometric bounds
             interaction = self.diff_interaction[k](e1 * e2)
-            combined = self.diff_norms[k](diff_part + interaction)
+            combined = self.diff_norms[k](self.diff_linear[k](diff_geom) + interaction)
             outputs.append(combined)
 
         result = torch.stack(outputs, dim=1)  # (B, 10, d)
-        if isinstance(c1, ConceptTensor):
-            return ConceptTensor.from_tensor(result.squeeze(0))
+        if hasattr(c1, "from_tensor"):
+            return c1.__class__.from_tensor(result.squeeze(0))
+        return result if batched else result.squeeze(0)
+
+    def intersection(
+        self, c1: ConceptTensor | torch.Tensor, c2: ConceptTensor | torch.Tensor
+    ) -> ConceptTensor | torch.Tensor:
+        """Logical Intersection / Synergy: :math:`c_1 \\sqcap c_2`.
+
+        Extracts the shared overlapping knowledge between two concepts using geometric projections.
+        """
+        t1 = c1.to_tensor() if hasattr(c1, "to_tensor") else c1
+        t2 = c2.to_tensor() if hasattr(c2, "to_tensor") else c2
+
+        batched = t1.ndim == 3
+        if not batched:
+            t1 = t1.unsqueeze(0)
+            t2 = t2.unsqueeze(0)
+
+        B = t1.shape[0]
+        outputs = []
+        for k in range(NUM_CONCEPT_ELEMENTS):
+            e1 = t1[:, k, :]
+            e2 = t2[:, k, :]
+            
+            # Orthogonal projection: project e1 onto the subspace spanned by e2
+            dot_val = (e1 * e2).sum(dim=-1, keepdim=True)
+            norm_sq = (e2 * e2).sum(dim=-1, keepdim=True) + 1e-8
+            proj = (dot_val / norm_sq) * e2
+            outputs.append(self.diff_norms[k](proj))
+
+        result = torch.stack(outputs, dim=1)
+        if hasattr(c1, "from_tensor"):
+            return c1.__class__.from_tensor(result.squeeze(0))
+        return result if batched else result.squeeze(0)
+
+    def implication(
+        self, c1: ConceptTensor | torch.Tensor, c2: ConceptTensor | torch.Tensor
+    ) -> torch.Tensor:
+        """Logical Entailment / Implication: :math:`c_1 \\implies c_2`.
+
+        Computes a differentiable implication score in [0, 1] indicating if c1 entails c2.
+        """
+        t1 = c1.to_tensor() if isinstance(c1, ConceptTensor) else c1
+        t2 = c2.to_tensor() if isinstance(c2, ConceptTensor) else c2
+        
+        # Measure what c2 has that c1 lacks
+        diff = self.difference(c2, c1)  # (10, d) or (B, 10, d)
+        
+        # If the remaining difference is zero, c1 fully implies c2
+        norm = diff.norm(dim=-1).mean(dim=-1)
+        score = torch.exp(-norm)
+        return score
+
+    def negation(
+        self, c: ConceptTensor | torch.Tensor, base: Optional[ConceptTensor | torch.Tensor] = None
+    ) -> ConceptTensor | torch.Tensor:
+        """Logical Negation / Inversion: :math:`\\neg c`.
+
+        Computes the semantic complement of concept c relative to a defined context/base concept.
+        """
+        t_c = c.to_tensor() if hasattr(c, "to_tensor") else c
+        
+        if base is None:
+            # Universal base concept: standard identity matrix or ones
+            t_base = torch.ones_like(t_c)
+        else:
+            t_base = base.to_tensor() if hasattr(base, "to_tensor") else base
+
+        batched = t_c.ndim == 3
+        if not batched:
+            t_c = t_c.unsqueeze(0)
+            t_base = t_base.unsqueeze(0)
+
+        B = t_c.shape[0]
+        outputs = []
+        for k in range(NUM_CONCEPT_ELEMENTS):
+            e_c = t_c[:, k, :]
+            e_base = t_base[:, k, :]
+            
+            # Negation is the projection of the base onto the orthogonal complement of c
+            dot_val = (e_base * e_c).sum(dim=-1, keepdim=True)
+            norm_sq = (e_c * e_c).sum(dim=-1, keepdim=True) + 1e-8
+            proj = (dot_val / norm_sq) * e_c
+            neg_geom = e_base - proj
+            outputs.append(self.diff_norms[k](neg_geom))
+
+        result = torch.stack(outputs, dim=1)
+        if hasattr(c, "from_tensor"):
+            return c.__class__.from_tensor(result.squeeze(0))
         return result if batched else result.squeeze(0)
 
     # ── Π Projection to Solution ──────────────────────────────────

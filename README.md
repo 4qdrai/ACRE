@@ -229,6 +229,9 @@ c_out^(t) = Σᵢ Σⱼ αᵢⱼ [ Σₘ σ(Wₘ pᵢ,formal) · Oₘ(cⱼ, c_ct
 | Binding | `c ⊗ p` | `W_⊗(c ⊙ p) + b_⊗` | Apply a concept to a problem (Hadamard binding) |
 | Difference | `c₁ ⊖ c₂` | `c₁ − proj_{c₂}(c₁)` | Extract what's unique to c₁ relative to c₂ |
 | Projection | `Π_S(c)` | `W_Π c` | Project concept to solution subspace |
+| Intersection | `c₁ ⊓ c₂` | `proj_{c₂}(c₁)` | Extract shared overlapping semantic components |
+| Entailment | `c₁ ⇒ c₂` | `exp(-‖c₂ ⊖ c₁‖)` | Compute differentiable implication score in [0, 1] |
+| Negation | `¬c` | `Base − proj_{c}(Base)` | Invert concept semantics relative to base context |
 
 > **See the full mathematical treatment:** [docs/mathematical_foundations.md](docs/mathematical_foundations.md) — with 6 theorems, complete proofs, and lemmas.
 
@@ -304,7 +307,7 @@ output = decoder.decode(solution_tensor)
 assert output.verify(), "Solution passes all GPF constraints ✓"
 ```
 
-### Run Simulations (Reproduce Our Results)
+### Run Simulations & Edge-case Validations (Reproduce Our Results)
 
 ```bash
 # FLOP complexity proof — reproduces the 57,083× result
@@ -321,6 +324,20 @@ python src/acre/simulations/compression_demo.py
 
 # Constraint satisfaction — Φ mask verification
 python src/acre/simulations/constraint_satisfaction_demo.py
+
+# ── NEW: Proposed Real Edge Validation Tasks ──
+
+# Drone Merging — Enforces 100% collision safety via Gram-Schmidt projection
+python scripts/validate_safe_trajectory.py
+
+# Program Synthesis — AST-checked negative loop-free grammar enforcement
+python scripts/validate_program_synthesis.py
+
+# Theorem Proving — Non-autoregressive Lean 4 goal subduction and proof convergence
+python scripts/validate_theorem_proving.py
+
+# Run SCAN Benchmark — Fully un-mocked parallel GPU training and OOD generalization
+python -m acre.evaluation.scan_benchmark
 ```
 
 ---

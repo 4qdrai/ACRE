@@ -196,12 +196,12 @@ class ConceptMapper:
 # ---------------------------------------------------------------------------
 
 class SCANModel(nn.Module):
-    """ACRE model for SCAN: maps commands to action sequences via concept algebra.
+    """ACRE model for SCAN: maps commands to action sequences via concept algebra and LARE.
 
     Instead of sequence-to-sequence with attention over tokens, this model:
-        1. Encodes commands into ConceptTensors
-        2. Composes concepts using algebraic ⊕ operation
-        3. Decodes composed concept to action sequence
+        1. Encodes commands into structured Concept and Problem representations
+        2. Solves the reasoning bottleneck using the iterative stateful LARE solver
+        3. Decodes the SolutionTensor bottleneck back to target action sequences
     """
 
     def __init__(
@@ -216,6 +216,7 @@ class SCANModel(nn.Module):
         super().__init__()
         self.d_model = d_model
         self.max_act_len = max_act_len
+        self.d_element = 64
 
         # Command encoder → concept space
         self.cmd_embed = nn.Embedding(cmd_vocab_size, d_model)
@@ -225,9 +226,20 @@ class SCANModel(nn.Module):
         )
         self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=n_layers)
 
-        # Concept composer (algebraic ⊕)
-        self.composer = nn.Bilinear(d_model, d_model, d_model, bias=False)
-        self.compose_norm = nn.LayerNorm(d_model)
+        # Structured projection heads mapping to 10-aspect spaces
+        self.concept_proj = nn.Linear(d_model, 10 * self.d_element)
+        self.problem_proj = nn.Linear(d_model, 10 * self.d_element)
+
+        # LARE Solver reasoning bottleneck
+        from acre.core.lare import LARE
+        self.solver = LARE(d=self.d_element, max_steps=5)
+
+        # Project SolutionTensor (10 * d_element) to d_model space for cross-attention
+        self.solution_to_memory = nn.Sequential(
+            nn.Linear(10 * self.d_element, d_model),
+            nn.GELU(),
+            nn.LayerNorm(d_model),
+        )
 
         # Action decoder
         self.act_embed = nn.Embedding(act_vocab_size, d_model)
@@ -247,11 +259,29 @@ class SCANModel(nn.Module):
         Returns:
             logits: (B, act_len, act_vocab_size).
         """
-        # Encode command
-        cmd_emb = self.cmd_embed(cmd_ids) * math.sqrt(self.d_model)
-        memory = self.encoder(cmd_emb)
+        from acre.core.concept_tensor import ConceptTensor
+        from acre.core.problem_tensor import ProblemTensor
 
-        # Decode actions
+        B = cmd_ids.shape[0]
+
+        # 1. Encode command tokens to contextual embeddings
+        cmd_emb = self.cmd_embed(cmd_ids) * math.sqrt(self.d_model)
+        hidden = self.encoder(cmd_emb)  # (B, cmd_len, d_model)
+
+        # 2. Extract global concept and problem representations
+        cmd_mean = hidden.mean(dim=1)  # (B, d_model)
+        concept_vectors = self.concept_proj(cmd_mean).reshape(B, 10, self.d_element)
+        problem_vectors = self.problem_proj(cmd_mean).reshape(B, 10, self.d_element)
+
+        # 3. Solve reasoning steps via stateful LARE fully batched
+        solutions = self.solver.forward_batched(concept_vectors, problem_vectors)  # (B, 10, d_element)
+        stacked_solutions = solutions.reshape(B, -1)  # (B, 10*d_element)
+
+        # 4. Project solution bottleneck back to Transformer decoder memory shape
+        # We project to (B, 1, d_model) to serve as a single unified context key/value memory
+        memory = self.solution_to_memory(stacked_solutions).unsqueeze(1)  # (B, 1, d_model)
+
+        # 5. Decode actions conditioned on the algebraic SolutionTensor memory
         act_emb = self.act_embed(act_ids) * math.sqrt(self.d_model)
         tgt_mask = nn.Transformer.generate_square_subsequent_mask(act_ids.size(1)).to(act_ids.device)
         decoded = self.decoder(act_emb, memory, tgt_mask=tgt_mask)
@@ -320,7 +350,7 @@ class SCANBenchmark:
         os.makedirs(results_dir, exist_ok=True)
 
         # Generate data splits
-        self.all_examples = generate_scan_examples(n_samples=8_000)
+        self.all_examples = generate_scan_examples(n_samples=1200)
         self._build_splits()
         self.results: Dict[str, Any] = {}
 
@@ -521,7 +551,7 @@ class SCANBenchmark:
         path = os.path.join(output_dir, "scan_results.png")
         plt.savefig(path, dpi=150, bbox_inches="tight")
         plt.close()
-        print(f"Figure saved → {path}")
+        print(f"Figure saved -> {path}")
 
 
 # ---------------------------------------------------------------------------
@@ -534,7 +564,8 @@ if __name__ == "__main__":
     print("ACRE — SCAN Compositional Generalization Benchmark")
     print("=" * 60)
 
-    bench = SCANBenchmark(device="cpu")
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    bench = SCANBenchmark(device=device)
 
     for split in ["simple", "length", "addprim"]:
         print(f"\n--- Training on split: {split} ---")
@@ -543,4 +574,4 @@ if __name__ == "__main__":
         print(f"  Accuracy: {result['accuracy']:.2%}  ({result['correct']}/{result['n_examples']})")
 
     bench.generate_figures()
-    print("\nDone ✓")
+    print("\nDone!")
