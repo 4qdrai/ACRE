@@ -380,7 +380,7 @@ class EmbeddingVisualizer:
         plt.tight_layout()
         plt.savefig(output_path, dpi=150, bbox_inches="tight")
         plt.close()
-        print(f"Figure saved → {output_path}")
+        print(f"Figure saved -> {output_path}")
 
 
 # ---------------------------------------------------------------------------
@@ -454,12 +454,33 @@ class EmbeddingEvaluator:
         # Clustering metrics
         sil = self.clustering.silhouette_score(flat_emb, labels)
 
-        # Pseudo-clustering for ARI (k-means approximation)
-        # Simple: assign each point to nearest centroid
-        unique_labels = labels.unique()
-        centroids = torch.stack([flat_emb[labels == l].mean(dim=0) for l in unique_labels])
-        dists_to_centroids = torch.cdist(flat_emb, centroids)
-        pred_labels = unique_labels[dists_to_centroids.argmin(dim=1)]
+        # Unsupervised KMeans clustering (no label leakage)
+        n_clusters = int(labels.unique().numel())
+        # Initialize centroids via K-Means++: first centroid random, rest max-distance
+        indices = [torch.randint(0, flat_emb.size(0), (1,)).item()]
+        centroids_list = [flat_emb[indices[0]]]
+        for _ in range(1, n_clusters):
+            dists_sq = torch.cdist(flat_emb, torch.stack(centroids_list)).min(dim=1).values ** 2
+            probs = dists_sq / dists_sq.sum().clamp(min=1e-10)
+            idx = torch.multinomial(probs, 1).item()
+            indices.append(idx)
+            centroids_list.append(flat_emb[idx])
+        centroids = torch.stack(centroids_list)
+
+        # Run KMeans for 20 iterations
+        for _ in range(20):
+            dists_to_centroids = torch.cdist(flat_emb, centroids)
+            assignments = dists_to_centroids.argmin(dim=1)
+            new_centroids = []
+            for k in range(n_clusters):
+                members = flat_emb[assignments == k]
+                if members.numel() > 0:
+                    new_centroids.append(members.mean(dim=0))
+                else:
+                    new_centroids.append(centroids[k])
+            centroids = torch.stack(new_centroids)
+
+        pred_labels = torch.cdist(flat_emb, centroids).argmin(dim=1)
         ari = self.clustering.adjusted_rand_index(labels, pred_labels)
 
         return EmbeddingEvalResult(
@@ -535,4 +556,4 @@ if __name__ == "__main__":
     # Generate visualization
     evaluator.visualize(embeddings_t, labels_t)
 
-    print("\nDone ✓")
+    print("\nDone [OK]")

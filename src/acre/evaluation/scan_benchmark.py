@@ -306,6 +306,65 @@ class SCANModel(nn.Module):
         logits = self.output_proj(decoded)
         return logits
 
+    @torch.no_grad()
+    def generate(self, cmd_ids: Tensor, max_len: int = 48, sos_id: int = 1, eos_id: int = 2, pad_id: int = 0) -> Tensor:
+        """Autoregressive generation without teacher forcing.
+
+        Args:
+            cmd_ids: (B, cmd_len) input command tokens.
+            max_len: Maximum output sequence length.
+            sos_id: Start-of-sequence token ID.
+            eos_id: End-of-sequence token ID.
+            pad_id: Padding token ID.
+
+        Returns:
+            preds: (B, max_len) generated action token IDs.
+        """
+        from acre.core.concept_tensor import ConceptTensor
+        from acre.core.problem_tensor import ProblemTensor
+
+        B = cmd_ids.shape[0]
+        device = cmd_ids.device
+
+        # Encode commands (same as forward)
+        cmd_emb = self.cmd_embed(cmd_ids) * math.sqrt(self.d_model)
+        hidden = self.encoder(cmd_emb)
+        B, seq_len = cmd_ids.shape
+
+        concept_seq = self.concept_proj(hidden).reshape(B, seq_len, 10, self.d_element)
+        active_lengths = (cmd_ids != 0).sum(dim=1)
+        max_active_len = max(int(active_lengths.max().item()), 1)
+
+        composite_concept = concept_seq[:, 0]
+        for t in range(1, min(max_active_len, seq_len)):
+            composite_concept = self.algebra.compose(composite_concept, concept_seq[:, t])
+
+        problem_vectors = self.problem_proj(hidden.mean(dim=1)).reshape(B, 10, self.d_element)
+        solutions = self.solver.forward_batched(composite_concept, problem_vectors)
+        stacked_solutions = solutions.reshape(B, -1)
+        memory = self.solution_to_memory(stacked_solutions).unsqueeze(1)
+
+        # Autoregressive decoding
+        generated = torch.full((B, max_len), pad_id, dtype=torch.long, device=device)
+        generated[:, 0] = sos_id
+        finished = torch.zeros(B, dtype=torch.bool, device=device)
+
+        for pos in range(1, max_len):
+            act_emb = self.act_embed(generated[:, :pos]) * math.sqrt(self.d_model)
+            tgt_mask = nn.Transformer.generate_square_subsequent_mask(pos).to(device)
+            decoded = self.decoder(act_emb, memory, tgt_mask=tgt_mask)
+            logits = self.output_proj(decoded[:, -1, :])  # (B, vocab)
+            next_token = logits.argmax(dim=-1)  # (B,)
+
+            next_token[finished] = pad_id
+            generated[:, pos] = next_token
+            finished = finished | (next_token == eos_id)
+
+            if finished.all():
+                break
+
+        return generated
+
 
 # ---------------------------------------------------------------------------
 # Transformer baseline (for comparison)
@@ -489,14 +548,20 @@ class SCANBenchmark:
             cmd_ids = cmd_ids.to(self.device)
             act_ids = act_ids.to(self.device)
 
-            logits = self._last_model(cmd_ids, act_ids[:, :-1])
-            preds = logits.argmax(dim=-1)
-            targets = act_ids[:, 1:]
+            # Autoregressive generation (no teacher forcing)
+            sos_id = test_ds.act_vocab.get("<sos>", 1)
+            eos_id = test_ds.act_vocab.get("<eos>", 2)
+            preds = self._last_model.generate(
+                cmd_ids, max_len=act_ids.size(1),
+                sos_id=sos_id, eos_id=eos_id,
+            )
+            targets = act_ids[:, 1:]  # strip SOS from targets
+            pred_tokens = preds[:, 1:]  # strip SOS from predictions
 
             # Per-example exact match
-            for i in range(preds.size(0)):
+            for i in range(pred_tokens.size(0)):
                 target_len = (targets[i] != 0).sum().item()
-                match = torch.equal(preds[i, :target_len], targets[i, :target_len])
+                match = torch.equal(pred_tokens[i, :target_len], targets[i, :target_len])
                 correct += int(match)
                 total += 1
 

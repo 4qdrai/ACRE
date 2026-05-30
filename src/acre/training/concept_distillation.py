@@ -217,7 +217,7 @@ class TextToConceptPipeline:
     # ------------------------------------------------------------------
     def _tokenise(self, text: str) -> Tensor:
         """Character-level hash tokenisation (placeholder)."""
-        ids = [hash(ch) % 32_000 for ch in text]
+        ids = [ord(ch) % 32_000 for ch in text]
         ids = ids[: self.max_len]
         return torch.tensor([ids], dtype=torch.long, device=self.device)
 

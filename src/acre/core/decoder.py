@@ -339,34 +339,47 @@ class SolutionDecoder(nn.Module):
 
         # Flatten solution tensor
         result = solution.result_tensor
-        solution_flat = result.reshape(-1)  # (d_solution,) or similar
+
+        # Detect batch dimension: (10, d) vs (B, 10, d)
+        if result.dim() == 3:
+            # Batched mode: (B, 10, d)
+            B = result.shape[0]
+            solution_flat = result.reshape(B, -1)  # (B, d_solution)
+        else:
+            # Single mode: (10, d) → treat as B=1
+            B = 1
+            solution_flat = result.reshape(1, -1)  # (1, d_solution)
 
         # Pad or truncate to expected d_solution
-        if solution_flat.shape[0] < self.d_solution:
+        if solution_flat.shape[-1] < self.d_solution:
             padding = torch.zeros(
-                self.d_solution - solution_flat.shape[0],
+                B, self.d_solution - solution_flat.shape[-1],
                 device=solution_flat.device,
                 dtype=solution_flat.dtype,
             )
-            solution_flat = torch.cat([solution_flat, padding])
-        elif solution_flat.shape[0] > self.d_solution:
-            solution_flat = solution_flat[: self.d_solution]
+            solution_flat = torch.cat([solution_flat, padding], dim=-1)
+        elif solution_flat.shape[-1] > self.d_solution:
+            solution_flat = solution_flat[:, :self.d_solution]
 
-        # Project solution to decoder space
-        solution_emb = self.solution_proj(solution_flat)  # (d_model,)
+        # Project solution to decoder space: (B, d_model)
+        solution_emb = self.solution_proj(solution_flat)
 
         # Predict or use given length
         if max_length is None:
-            length = self._predict_length(solution_flat)
+            length = self._predict_length(solution_flat[0])
         else:
             length = min(max_length, self.max_output_len)
 
-        # Initial parallel prediction
-        token_embs = self._initial_predict(solution_emb, length)  # (length, d_model)
-        token_embs = token_embs.unsqueeze(0)  # (1, length, d_model)
+        # Initial parallel prediction: (B, length, d_model)
+        positions = torch.arange(length, device=solution_emb.device)
+        pos_emb = self.position_embeddings(positions)  # (length, d_model)
+        solution_broadcast = solution_emb.unsqueeze(1).expand(B, length, -1)  # (B, length, d_model)
+        pos_broadcast = pos_emb.unsqueeze(0).expand(B, length, -1)  # (B, length, d_model)
+        combined = torch.cat([solution_broadcast, pos_broadcast], dim=-1)  # (B, length, 2*d_model)
+        token_embs = self.initial_predictor(combined)  # (B, length, d_model)
 
-        # Solution as memory for cross-attention
-        solution_memory = solution_emb.unsqueeze(0).unsqueeze(0)  # (1, 1, d_model)
+        # Solution as memory for cross-attention: (B, 1, d_model)
+        solution_memory = solution_emb.unsqueeze(1)  # (B, 1, d_model)
 
         # Iterative refinement
         for step in range(refine_steps):
@@ -375,8 +388,10 @@ class SolutionDecoder(nn.Module):
                 token_embs, solution_memory, mask_ratio
             )
 
-        # Project to vocabulary
-        logits = self.vocab_head(token_embs.squeeze(0))  # (length, vocab_size)
+        # Project to vocabulary: (B, length, vocab_size) or (length, vocab_size)
+        logits = self.vocab_head(token_embs)
+        if result.dim() == 2:
+            logits = logits.squeeze(0)  # Back to (length, vocab_size) for single inputs
         return logits
 
     def decode_to_tokens(

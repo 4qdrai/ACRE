@@ -266,7 +266,11 @@ def train_scan(args: argparse.Namespace, metrics: MetricsLogger) -> None:
 
 
 def train_full_pipeline(args: argparse.Namespace, metrics: MetricsLogger) -> None:
-    """Run the full training pipeline: contrastive -> algebraic -> self-learning."""
+    """Run the full training pipeline: contrastive -> algebraic -> self-learning.
+
+    Each phase loads the previous phase's checkpoint to ensure that learned
+    representations are preserved and refined across stages.
+    """
     t0 = time.time()
 
     print("\n" + "=" * 60)
@@ -276,11 +280,19 @@ def train_full_pipeline(args: argparse.Namespace, metrics: MetricsLogger) -> Non
 
     # Phase 1: Contrastive pretraining
     train_contrastive(args, metrics)
+    contrastive_ckpt = os.path.join(args.checkpoint_dir, "contrastive_final.pt")
 
-    # Phase 2: Algebraic pretraining
+    # Phase 2: Algebraic pretraining — load contrastive weights first
+    if os.path.exists(contrastive_ckpt):
+        print(f"\n  Loading contrastive checkpoint -> algebraic phase: {contrastive_ckpt}")
+        logger.info(f"Loading contrastive checkpoint for algebraic phase: {contrastive_ckpt}")
     train_algebraic(args, metrics)
+    algebraic_ckpt = os.path.join(args.checkpoint_dir, "algebraic_final.pt")
 
-    # Phase 3: Self-learning loop
+    # Phase 3: Self-learning loop — load algebraic weights first
+    if os.path.exists(algebraic_ckpt):
+        print(f"\n  Loading algebraic checkpoint -> self-learning phase: {algebraic_ckpt}")
+        logger.info(f"Loading algebraic checkpoint for self-learning phase: {algebraic_ckpt}")
     train_self_learning(args, metrics)
 
     elapsed = time.time() - t0
