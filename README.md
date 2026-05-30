@@ -553,6 +553,18 @@ This project is licensed under the Apache License 2.0 — see the [LICENSE](LICE
 
 ## 📋 Changelog
 
+### v1.6.0 — Round 6 Review Remediation (2026-05-30)
+
+**Training dynamics fixes:**
+- **LR scheduler desync** — `OneCycleLR` and `CosineAnnealingLR` `steps_per_epoch`/`T_max` now computed from actual optimizer steps (`math.ceil(len(loader) / grad_accum)`) instead of raw batch count (`algebraic_pretraining.py`, `contrastive_pretraining.py`)
+- **Final batch flush** — Gradient accumulation now triggers on `is_last_step` in addition to `is_accum_step`, preventing loss of partial batches at epoch boundaries
+
+**Evaluation metric fix:**
+- **C2E semantic subspace fallacy** — Removed arbitrary dimension slicing in `ElementScorer` (S1, S3, S4, S6). Dense embeddings from `ProjectionHead` are holistic — no disentangling loss forces specific dims to encode specific sub-concepts. All scorers now use full-vector cosine similarity and/or L2 distance
+
+**Contrastive learning fix:**
+- **False negative collisions** — `InfoNCELoss` now accepts optional `labels` tensor to mask same-cluster off-diagonal logits (set to `-inf`). Prevents pushing semantically identical concepts apart when they appear in the same batch (Khosla et al., 2020)
+
 ### v1.5.0 — Round 5 Review Remediation (2026-05-30)
 
 **Critical mathematical fixes:**

@@ -155,12 +155,14 @@ class ElementScorer:
         return max(0.0, 100 * (1 - dist / max_dist))
 
     def score_s1_ontology(self, gen: Tensor, gt: Tensor) -> float:
-        """S1 — Ontological Scaffolding."""
-        # Definitions (40%), Taxonomy (30%), Modular Composition (30%)
-        definitions = self._cosine_sim_score(gen[:4], gt[:4])
-        taxonomy = self._cosine_sim_score(gen[4:7], gt[4:7])
-        composition = self._cosine_sim_score(gen[7:], gt[7:])
-        return 0.4 * definitions + 0.3 * taxonomy + 0.3 * composition
+        """S1 — Ontological Scaffolding.
+
+        Uses holistic vector comparison across the full embedding.
+        The dense representation captures definitions, taxonomy, and modular
+        composition jointly — arbitrary slicing would yield noise since
+        there is no disentangling loss in the pipeline.
+        """
+        return self._cosine_sim_score(gen, gt)
 
     def score_s2_abstraction(self, gen: Tensor, gt: Tensor) -> float:
         """S2 — Abstraction Level (categorical)."""
@@ -170,15 +172,23 @@ class ElementScorer:
         return 100 * max(0, 1 - abs(gen_level - gt_level) / 3)
 
     def score_s3_axioms(self, gen: Tensor, gt: Tensor) -> float:
-        """S3 — Axiomatic Base."""
-        textual = self._cosine_sim_score(gen[:gen.size(0)//2], gt[:gt.size(0)//2])
-        formal = self._l2_distance_score(gen[gen.size(0)//2:], gt[gt.size(0)//2:])
+        """S3 — Axiomatic Base.
+
+        Uses a blend of cosine similarity (textual fidelity) and L2 distance
+        (structural precision) over the full holistic embedding.
+        """
+        textual = self._cosine_sim_score(gen, gt)
+        formal = self._l2_distance_score(gen, gt)
         return 0.5 * textual + 0.5 * formal
 
     def score_s4_relations(self, gen: Tensor, gt: Tensor) -> float:
-        """S4 — Relational Network."""
-        textual = self._cosine_sim_score(gen[:4], gt[:4])
-        formal = self._l2_distance_score(gen[4:], gt[4:])
+        """S4 — Relational Network.
+
+        Uses a blend of cosine similarity (structural topology) and L2 distance
+        (relational precision) over the full holistic embedding.
+        """
+        textual = self._cosine_sim_score(gen, gt)
+        formal = self._l2_distance_score(gen, gt)
         return 0.4 * textual + 0.6 * formal
 
     def score_s5_inference(self, gen: Tensor, gt: Tensor) -> float:
@@ -186,10 +196,11 @@ class ElementScorer:
         return self._cosine_sim_score(gen, gt)
 
     def score_s6_methods(self, gen: Tensor, gt: Tensor) -> float:
-        """S6 — Methodological Apparatus."""
-        methods = self._cosine_sim_score(gen[:7], gt[:7])
-        constraints = self._cosine_sim_score(gen[7:], gt[7:])
-        return 0.7 * methods + 0.3 * constraints
+        """S6 — Methodological Apparatus.
+
+        Uses holistic vector comparison across the full embedding.
+        """
+        return self._cosine_sim_score(gen, gt)
 
     def score_s7_code(self, gen: Tensor, gt: Tensor) -> float:
         """S7 — Illustrative Corpus / Code.

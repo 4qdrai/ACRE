@@ -17,6 +17,7 @@ Four loss components:
 from __future__ import annotations
 
 import logging
+import math
 import os
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
@@ -241,11 +242,12 @@ class AlgebraicPretrainer:
             shuffle=True, drop_last=True, num_workers=0,
         )
 
+        steps_per_epoch = math.ceil(len(loader) / self.cfg.gradient_accumulation_steps)
         scheduler = OneCycleLR(
             self.optimizer,
             max_lr=self.cfg.lr,
             epochs=self.cfg.epochs,
-            steps_per_epoch=len(loader),
+            steps_per_epoch=steps_per_epoch,
         )
 
         global_step = 0
@@ -290,7 +292,10 @@ class AlgebraicPretrainer:
 
                 self.scaler.scale(total).backward()
 
-                if (batch_idx + 1) % self.cfg.gradient_accumulation_steps == 0:
+                is_accum_step = (batch_idx + 1) % self.cfg.gradient_accumulation_steps == 0
+                is_last_step = (batch_idx + 1) == len(loader)
+
+                if is_accum_step or is_last_step:
                     scale_before = self.scaler.get_scale()
                     self.scaler.step(self.optimizer)
                     self.scaler.update()

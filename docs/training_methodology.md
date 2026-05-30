@@ -185,7 +185,7 @@ Related concepts should be close, unrelated concepts should be far:
 L_CCC = -log(exp(sim(c_i, c_j)/τ) / Σ_k exp(sim(c_i, c_k)/τ))
 ```
 
-where `(c_i, c_j)` are concept pairs linked by Element 10 (Inter-Concept Relationships), and negative pairs are randomly sampled. Temperature `τ = 0.07`.
+where `(c_i, c_j)` are concept pairs linked by Element 10 (Inter-Concept Relationships), and negative pairs are randomly sampled. Temperature `τ = 0.07`. **Supervised false-negative masking** is applied: when concepts share the same cluster label, their off-diagonal logits are set to `-∞` to prevent pushing semantically identical concepts apart (Khosla et al., 2020).
 
 #### Objective 5: Code Execution Verification (CEV)
 
@@ -351,9 +351,10 @@ Train the concept encoder and the embedding/reranker model that maps concepts to
 | Embedding dimension | 768 | Matches common embedding models for interoperability |
 | Temperature | 0.07 | Standard for contrastive learning (Chen et al., 2020) |
 | Batch size | 2048 | Large batch for diverse negatives |
-| Learning rate | 1e-4 | AdamW with cosine decay |
+| Learning rate | 1e-4 | AdamW with cosine decay (accumulation-corrected) |
 | Training steps | 50,000 | ~4 H100-hours |
 | Hard negative ratio | 30% | Concepts from same domain but different sub-fields |
+| False negative masking | Supervised | Same-cluster off-diagonal logits masked to -∞ |
 
 ### Cross-Encoder Reranker
 
@@ -397,10 +398,10 @@ L_algebra = ||c₁ ⊕ c₂ - c_target||² + ||c ⊗ p - s_target||²
 Train the gating mechanism to select the correct operator:
 
 ```
-L_gate = -Σ_m y_m · log(σ(W_m · p_formal))
+L_gate = -Σ_m y_m · log(softmax(W₁·p, ..., W_M·p)_m)
 ```
 
-where `y_m` is the ground truth operator label for each training example.
+where `y_m` is the ground truth operator label for each training example. The softmax ensures a strict convex combination ($\sum_m g_m = 1$), guaranteeing the aggregate Lipschitz constant does not exceed 1.
 
 #### Task 3: Constraint Mask Learning
 
@@ -438,7 +439,7 @@ This connects directly to the **SIGReg regularization** from ALPS/4B-JEPA (Barde
 | Model size | 1B parameters (LARE core) | Balance of capacity and efficiency |
 | Context (concepts) | 64 concepts per problem | Covers typical reasoning scenarios |
 | Reasoning steps | 8 | Sufficient for convergence (Corollary 4.1) |
-| Learning rate | 3e-4 | AdamW with warmup + cosine decay |
+| Learning rate | 3e-4 | AdamW with warmup + cosine decay (accumulation-corrected) |
 | Warmup steps | 2,000 | Stabilize initial training |
 | Batch size | 512 | Concept-problem pairs |
 | Training steps | 200,000 | ~30 H100-hours |

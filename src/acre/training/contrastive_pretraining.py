@@ -103,11 +103,14 @@ class InfoNCELoss(nn.Module):
         super().__init__()
         self.temperature = temperature
 
-    def forward(self, anchors: Tensor, positives: Tensor) -> Tensor:
+    def forward(self, anchors: Tensor, positives: Tensor, labels: Optional[Tensor] = None) -> Tensor:
         """
         Args:
             anchors:   (N, D) L2-normalised embeddings.
             positives: (N, D) L2-normalised embeddings.
+            labels:    (N,) optional integer labels. When provided, same-label
+                       off-diagonal pairs are masked to prevent false-negative
+                       collisions (Khosla et al., 2020).
 
         Returns:
             Scalar loss.
@@ -117,11 +120,21 @@ class InfoNCELoss(nn.Module):
 
         # Cosine similarity matrix (N × N)
         logits = anchors @ positives.T / self.temperature
-        labels = torch.arange(logits.size(0), device=logits.device)
+
+        # Supervised masking: neutralize false negatives from same-cluster samples
+        if labels is not None:
+            label_match = labels.unsqueeze(0) == labels.unsqueeze(1)
+            # Keep the diagonal (true positives) visible
+            label_match.fill_diagonal_(False)
+            # Set same-label off-diagonal logits to -inf so they don't
+            # contribute to the denominator as negatives
+            logits = logits.masked_fill(label_match, -float("inf"))
+
+        targets = torch.arange(logits.size(0), device=logits.device)
 
         # Symmetric loss
-        loss_a2p = F.cross_entropy(logits, labels)
-        loss_p2a = F.cross_entropy(logits.T, labels)
+        loss_a2p = F.cross_entropy(logits, targets)
+        loss_p2a = F.cross_entropy(logits.T, targets)
         return (loss_a2p + loss_p2a) / 2
 
 
@@ -308,9 +321,10 @@ class ConceptContrastiveTrainer:
             shuffle=True, drop_last=True, num_workers=0,
         )
 
+        steps_per_epoch = math.ceil(len(loader) / self.config.gradient_accumulation_steps)
         scheduler = CosineAnnealingLR(
             self.optimizer,
-            T_max=self.config.epochs * len(loader),
+            T_max=self.config.epochs * steps_per_epoch,
             eta_min=1e-6,
         )
 
@@ -334,12 +348,15 @@ class ConceptContrastiveTrainer:
                 with ctx:
                     z_a = self.projection(view_a)
                     z_b = self.projection(view_b)
-                    loss = self.criterion(z_a, z_b)
+                    loss = self.criterion(z_a, z_b, labels=labels.to(self.device))
                     loss = loss / self.config.gradient_accumulation_steps
 
                 self.scaler.scale(loss).backward()
 
-                if (batch_idx + 1) % self.config.gradient_accumulation_steps == 0:
+                is_accum_step = (batch_idx + 1) % self.config.gradient_accumulation_steps == 0
+                is_last_step = (batch_idx + 1) == len(loader)
+
+                if is_accum_step or is_last_step:
                     scale_before = self.scaler.get_scale()
                     self.scaler.step(self.optimizer)
                     self.scaler.update()
