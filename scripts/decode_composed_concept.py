@@ -29,7 +29,7 @@ def build_reverse_tokenizer() -> Dict[int, str]:
     # Map from hash ID back to character
     id_to_char = {}
     for ch in printable_chars:
-        h_id = hash(ch) % 32000
+        h_id = ord(ch) % 32000
         id_to_char[h_id] = ch
     return id_to_char
 

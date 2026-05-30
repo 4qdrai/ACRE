@@ -340,10 +340,14 @@ class ConceptContrastiveTrainer:
                 self.scaler.scale(loss).backward()
 
                 if (batch_idx + 1) % self.config.gradient_accumulation_steps == 0:
+                    scale_before = self.scaler.get_scale()
                     self.scaler.step(self.optimizer)
                     self.scaler.update()
                     self.optimizer.zero_grad()
-                    scheduler.step()
+                    # Only step scheduler if the optimizer actually stepped
+                    # (GradScaler skips the step when NaN gradients are detected)
+                    if scale_before <= self.scaler.get_scale():
+                        scheduler.step()
 
                 epoch_loss += loss.item() * self.config.gradient_accumulation_steps
                 n_batches += 1

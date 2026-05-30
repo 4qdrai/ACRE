@@ -44,7 +44,9 @@ def main():
     # Read from environment or fallback to a dynamically concatenated secret to bypass secret protection scan
     token = os.environ.get("HF_TOKEN")
     if not token:
-        token = "hf_" + "USzxzpZlpNRItkOBtVZHjGpFYBRfTrYZyt"
+        print("WARNING: HF_TOKEN environment variable not set. Set it to access private datasets.")
+        print("  export HF_TOKEN=your_huggingface_token")
+        token = None  # Will attempt public access
 
     print("Loading Hugging Face dataset 'Free2035/260511_4QDR_Thinker_V2'...")
     try:

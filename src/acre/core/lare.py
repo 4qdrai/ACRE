@@ -243,17 +243,12 @@ class LARE(nn.Module):
             nn.Tanh(),  # Replaced GELU with Tanh (1-Lipschitz limit) to satisfy contraction theorem
         )
 
-        # ── State refinement: processes the aggregated operator
-        # output and produces the next state
+        # ── State refinement: processes the full (10*d) manifold
+        # to preserve structured element topology through reasoning
         self.state_refiner = nn.Sequential(
-            spectral_norm(nn.Linear(d, d)),
-            nn.Tanh(),  # Replaced GELU with Tanh (1-Lipschitz limit) to satisfy contraction theorem
-            spectral_norm(nn.Linear(d, d)),
-        )
-
-        # ── Per-element output projection (expand d → 10*d for state)
-        self.state_expand = nn.Sequential(
-            spectral_norm(nn.Linear(d, num_elements * d)),
+            spectral_norm(nn.Linear(num_elements * d, num_elements * d)),
+            nn.Tanh(),  # Strictly 1-Lipschitz to satisfy Banach contraction theorem
+            spectral_norm(nn.Linear(num_elements * d, num_elements * d)),
         )
 
         # ── Solution projection ───────────────────────────────────
@@ -362,21 +357,21 @@ class LARE(nn.Module):
         # Update the aggregated context dynamically from the reasoning state to achieve true multi-hop refinement
         dynamic_context = self.context_aggregator(prev_state)  # (d,)
 
-        # Weighted sum over concepts with operator application
-        aggregated = torch.zeros(self.d, device=p_flat.device, dtype=p_flat.dtype)
+        # Weighted sum over concepts — preserve (10, d) manifold topology
+        aggregated = torch.zeros(NUM_CONCEPT_ELEMENTS, self.d, device=p_flat.device, dtype=p_flat.dtype)
         total_violation = 0.0
 
         for j in range(num_concepts):
-            # Apply operators to all 10 aspect elements individually rather than pre-pooling
+            # Apply operators to all 10 aspect elements individually
             op_outputs = []
             for idx in range(NUM_CONCEPT_ELEMENTS):
                 c_element = concepts[j].get_element(idx)
                 op_outputs.append(self._apply_operators(c_element, dynamic_context, formal_reqs))
             
-            # Aggregate the independently processed aspect representations
-            op_output = torch.stack(op_outputs, dim=0).mean(dim=0)  # (d,)
+            # Keep the (10, d) structure intact — no mean pooling
+            op_output = torch.stack(op_outputs, dim=0)  # (10, d)
 
-            # Apply constraint mask Φ (soft gating)
+            # Apply constraint mask Φ (soft gating, broadcast over elements)
             constraints = problem.get_constraint_vector()       # (d,)
             limitations = concepts[j].limitations_risks         # (d,)
             mask = self.constraint_mask(constraints, limitations)  # (d,)
@@ -385,25 +380,21 @@ class LARE(nn.Module):
             ).item()
             total_violation += violation
 
-            # Masked contribution
-            masked_output = op_output * mask
+            # Masked contribution (broadcast mask over 10 elements)
+            masked_output = op_output * mask.unsqueeze(0)  # (10, d)
 
-            # Strict differentiable Gram-Schmidt projection (hard constraint satisfaction)
-            # Projects the masked output vector orthogonally onto the null-space of the constraints
-            dot_val = (masked_output * constraints).sum(dim=-1, keepdim=True)
-            norm_sq = (constraints * constraints).sum(dim=-1, keepdim=True) + 1e-8
-            proj = (dot_val / norm_sq) * constraints
+            # Strict differentiable Gram-Schmidt projection per element
+            dot_val = (masked_output * constraints.unsqueeze(0)).sum(dim=-1, keepdim=True)  # (10, 1)
+            norm_sq = (constraints * constraints).sum() + 1e-8
+            proj = (dot_val / norm_sq) * constraints.unsqueeze(0)  # (10, d)
             masked_output = masked_output - proj
 
-            aggregated = aggregated + alpha[j] * masked_output
+            aggregated = aggregated + alpha[j] * masked_output  # (10, d)
 
         avg_violation = total_violation / max(num_concepts, 1)
 
-        # Refine the aggregated state
-        refined = self.state_refiner(aggregated)  # (d,)
-
-        # Expand back to full state dimension
-        new_state = self.state_expand(refined)  # (10*d,)
+        # Refine the full (10*d) manifold — no collapse to (d,)
+        new_state = self.state_refiner(aggregated.reshape(-1))  # (10*d,)
 
         # Residual connection with previous state
         if prev_state.shape == new_state.shape:
@@ -485,7 +476,7 @@ class LARE(nn.Module):
                     lambd = 1e-4
                     F_T = F_mat.transpose(-2, -1)
                     reg_matrix = F_T @ F_mat + lambd * torch.eye(F_mat.size(-1), device=device, dtype=dtype)
-                    alpha_coeff = torch.linalg.solve(reg_matrix, F_T @ f_target.unsqueeze(-1)).solution.squeeze(-1)
+                    alpha_coeff = torch.linalg.solve(reg_matrix, F_T @ f_target.unsqueeze(-1)).squeeze(-1)
                 except RuntimeError:
                     x = g_x
                     continue
@@ -703,24 +694,21 @@ class LARE(nn.Module):
                     op_output = op_output + gate * op_result
                 op_outputs.append(op_output)
                 
-            # Aggregate the independently processed aspect representations
-            op_output = torch.stack(op_outputs, dim=1).mean(dim=1)  # (B, d)
+            # Keep the (B, 10, d) manifold intact — no mean pooling
+            op_output = torch.stack(op_outputs, dim=1)  # (B, 10, d)
             
-            # Apply constraint mask Φ (soft gating)
+            # Apply constraint mask Φ (soft gating, broadcast over elements)
             mask = self.constraint_mask(constraints, limitations)  # (B, d)
-            masked_output = op_output * mask
+            masked_output = op_output * mask.unsqueeze(1)  # (B, 10, d)
             
-            # Strict differentiable Gram-Schmidt projection (hard constraint satisfaction)
-            dot_val = (masked_output * constraints).sum(dim=-1, keepdim=True)  # (B, 1)
-            norm_sq = (constraints * constraints).sum(dim=-1, keepdim=True) + 1e-8
-            proj = (dot_val / norm_sq) * constraints
+            # Strict differentiable Gram-Schmidt projection per element
+            dot_val = (masked_output * constraints.unsqueeze(1)).sum(dim=-1, keepdim=True)  # (B, 10, 1)
+            norm_sq = (constraints * constraints).sum(dim=-1, keepdim=True).unsqueeze(1) + 1e-8  # (B, 1, 1)
+            proj = (dot_val / norm_sq) * constraints.unsqueeze(1)  # (B, 10, d)
             masked_output = masked_output - proj
             
-            # Refine the aggregated state
-            refined = self.state_refiner(masked_output)  # (B, d)
-            
-            # Expand back to full state dimension
-            new_state = self.state_expand(refined)  # (B, 10*d)
+            # Refine the full (B, 10*d) manifold — no collapse to (B, d)
+            new_state = self.state_refiner(masked_output.reshape(B, -1))  # (B, 10*d)
             
             # Residual connection
             state = 0.5 * new_state + 0.5 * prev_state

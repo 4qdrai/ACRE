@@ -178,8 +178,14 @@ def train_contrastive(args: argparse.Namespace, metrics: MetricsLogger) -> None:
     trainer.save_checkpoint(ckpt_path)
 
 
-def train_algebraic(args: argparse.Namespace, metrics: MetricsLogger) -> None:
-    """Run algebraic pretraining phase."""
+def train_algebraic(args: argparse.Namespace, metrics: MetricsLogger, ckpt_path: Optional[str] = None) -> None:
+    """Run algebraic pretraining phase.
+    
+    Parameters
+    ----------
+    ckpt_path : str, optional
+        Path to a contrastive pretraining checkpoint to seed shared weights.
+    """
     print("\n" + "=" * 60)
     print("ALGEBRAIC PRETRAINING")
     print("=" * 60)
@@ -198,6 +204,15 @@ def train_algebraic(args: argparse.Namespace, metrics: MetricsLogger) -> None:
         config.batch_size = 3
 
     trainer = AlgebraicPretrainer(config)
+
+    # Load contrastive checkpoint weights (projection head -> shared algebra)
+    if ckpt_path and os.path.exists(ckpt_path):
+        state = torch.load(ckpt_path, map_location=args.device, weights_only=False)
+        if "projection" in state:
+            trainer.predictor.load_state_dict(state["projection"], strict=False)
+            print(f"  Loaded contrastive projection weights into algebraic predictor")
+        logger.info(f"Loaded contrastive checkpoint for algebraic phase: {ckpt_path}")
+
     dataset = SyntheticAlgebraDataset(size=args.dataset_size)
 
     history = trainer.train(dataset)
@@ -208,12 +223,18 @@ def train_algebraic(args: argparse.Namespace, metrics: MetricsLogger) -> None:
         metrics.log("algebraic/commute_loss", rec["commute"], int(rec["epoch"]))
         metrics.log("algebraic/kappa", rec["kappa"], int(rec["epoch"]))
 
-    ckpt_path = os.path.join(args.checkpoint_dir, "algebraic_final.pt")
-    trainer.save_checkpoint(ckpt_path)
+    ckpt_path_out = os.path.join(args.checkpoint_dir, "algebraic_final.pt")
+    trainer.save_checkpoint(ckpt_path_out)
 
 
-def train_self_learning(args: argparse.Namespace, metrics: MetricsLogger) -> None:
-    """Run self-learning loop."""
+def train_self_learning(args: argparse.Namespace, metrics: MetricsLogger, ckpt_path: Optional[str] = None) -> None:
+    """Run self-learning loop.
+    
+    Parameters
+    ----------
+    ckpt_path : str, optional
+        Path to an algebraic pretraining checkpoint to seed the solver.
+    """
     print("\n" + "=" * 60)
     print("SELF-LEARNING LOOP")
     print("=" * 60)
@@ -224,6 +245,26 @@ def train_self_learning(args: argparse.Namespace, metrics: MetricsLogger) -> Non
         log_every=max(args.self_learn_steps // 10, 1),
     )
     loop = SelfLearningLoop(config)
+
+    # Load algebraic checkpoint weights into the LARE solver
+    if ckpt_path and os.path.exists(ckpt_path):
+        state = torch.load(ckpt_path, map_location=args.device, weights_only=False)
+        if "algebra" in state:
+            loop.solver.algebra = loop.solver.algebra  # ensure it exists
+            try:
+                from acre.core.algebra import ConceptAlgebra
+                loop.solver.algebra.load_state_dict(state["algebra"], strict=False)
+                print(f"  Loaded algebraic algebra weights into LARE solver")
+            except Exception as e:
+                logger.warning(f"Could not load algebra weights: {e}")
+        if "phi_mask" in state:
+            try:
+                loop.solver.constraint_mask.load_state_dict(state["phi_mask"], strict=False)
+                print(f"  Loaded constraint mask weights into LARE solver")
+            except Exception as e:
+                logger.warning(f"Could not load phi_mask weights: {e}")
+        logger.info(f"Loaded algebraic checkpoint for self-learning phase: {ckpt_path}")
+
     stats = loop.run()
 
     for i, rate in enumerate(stats.success_rate_history):
@@ -282,18 +323,12 @@ def train_full_pipeline(args: argparse.Namespace, metrics: MetricsLogger) -> Non
     train_contrastive(args, metrics)
     contrastive_ckpt = os.path.join(args.checkpoint_dir, "contrastive_final.pt")
 
-    # Phase 2: Algebraic pretraining — load contrastive weights first
-    if os.path.exists(contrastive_ckpt):
-        print(f"\n  Loading contrastive checkpoint -> algebraic phase: {contrastive_ckpt}")
-        logger.info(f"Loading contrastive checkpoint for algebraic phase: {contrastive_ckpt}")
-    train_algebraic(args, metrics)
+    # Phase 2: Algebraic pretraining — load contrastive weights
+    train_algebraic(args, metrics, ckpt_path=contrastive_ckpt)
     algebraic_ckpt = os.path.join(args.checkpoint_dir, "algebraic_final.pt")
 
-    # Phase 3: Self-learning loop — load algebraic weights first
-    if os.path.exists(algebraic_ckpt):
-        print(f"\n  Loading algebraic checkpoint -> self-learning phase: {algebraic_ckpt}")
-        logger.info(f"Loading algebraic checkpoint for self-learning phase: {algebraic_ckpt}")
-    train_self_learning(args, metrics)
+    # Phase 3: Self-learning loop — load algebraic weights
+    train_self_learning(args, metrics, ckpt_path=algebraic_ckpt)
 
     elapsed = time.time() - t0
     print(f"\nFull pipeline completed in {elapsed / 60:.1f} minutes")

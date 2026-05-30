@@ -25,6 +25,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
+from torch.nn.utils import spectral_norm
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import OneCycleLR
 from torch.utils.data import DataLoader, Dataset
@@ -81,28 +82,32 @@ class ElementPredictor(nn.Module):
 # ---------------------------------------------------------------------------
 
 class LARERefiner(nn.Module):
-    """Single refinement step of the Latent Algebraic Reasoning Engine.
+    """Single refinement step matching the real LARE state_refiner architecture.
 
-    Corresponds to the operator T in the Banach fixed-point theorem:
-    we need ||T(c) - T(c')|| <= κ ||c - c'|| with κ < 1 for convergence.
+    Uses spectral normalization and Tanh activations to mirror the production
+    LARE module, ensuring that fixed-point pretraining directly improves
+    the weights used during actual reasoning.
     """
 
     def __init__(self, element_dim: int = ELEMENT_DIM) -> None:
         super().__init__()
+        total_dim = NUM_ELEMENTS * element_dim
         self.refine = nn.Sequential(
-            nn.Linear(element_dim, element_dim * 2),
-            nn.GELU(),
-            nn.Linear(element_dim * 2, element_dim),
+            spectral_norm(nn.Linear(total_dim, total_dim)),
+            nn.Tanh(),  # Strictly 1-Lipschitz for Banach contraction guarantee
+            spectral_norm(nn.Linear(total_dim, total_dim)),
         )
-        self.norm = nn.LayerNorm(element_dim)
         # Contraction factor — initialised < 1 for guaranteed convergence
         self.kappa = nn.Parameter(torch.tensor(0.5))
 
     def forward(self, c: Tensor) -> Tensor:
-        """One refinement step: c -> T(c).  Shape preserved."""
-        residual = self.refine(c)
+        """One refinement step: c -> T(c). Operates on (B, 10, d) -> (B, 10, d)."""
+        orig_shape = c.shape
+        flat = c.reshape(c.size(0), -1) if c.dim() == 3 else c.reshape(-1)
+        residual = self.refine(flat)
         kappa_clamped = torch.sigmoid(self.kappa)  # Always in (0, 1)
-        return self.norm(c + kappa_clamped * residual)
+        result = flat + kappa_clamped * residual
+        return result.reshape(orig_shape)
 
 
 # ---------------------------------------------------------------------------
@@ -280,10 +285,14 @@ class AlgebraicPretrainer:
                 self.scaler.scale(total).backward()
 
                 if (batch_idx + 1) % self.cfg.gradient_accumulation_steps == 0:
+                    scale_before = self.scaler.get_scale()
                     self.scaler.step(self.optimizer)
                     self.scaler.update()
                     self.optimizer.zero_grad()
-                    scheduler.step()
+                    # Only step scheduler if the optimizer actually stepped
+                    # (GradScaler skips the step when NaN gradients are detected)
+                    if scale_before <= self.scaler.get_scale():
+                        scheduler.step()
 
                 factor = self.cfg.gradient_accumulation_steps
                 losses["mask"] += l_mask.item()

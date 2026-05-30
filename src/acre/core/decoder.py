@@ -265,7 +265,7 @@ class SolutionDecoder(nn.Module):
         solution_emb: torch.Tensor,
         mask_ratio: float,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Execute one refinement step.
+        """Execute one refinement step (batched).
 
         1. Score confidence of each position.
         2. Mask the least confident positions.
@@ -274,9 +274,9 @@ class SolutionDecoder(nn.Module):
         Parameters
         ----------
         token_embs : torch.Tensor
-            Current token embeddings, shape ``(1, length, d_model)``.
+            Current token embeddings, shape ``(B, length, d_model)``.
         solution_emb : torch.Tensor
-            Solution embedding, shape ``(1, 1, d_model)`` (memory for
+            Solution embedding, shape ``(B, 1, d_model)`` (memory for
             cross-attention).
         mask_ratio : float
             Fraction of positions to mask.
@@ -286,27 +286,26 @@ class SolutionDecoder(nn.Module):
         tuple of (torch.Tensor, torch.Tensor)
             Updated token embeddings and per-position confidence scores.
         """
-        length = token_embs.shape[1]
+        B, length, d_model = token_embs.shape
 
         # Score confidence
-        confidence = self.confidence_scorer(token_embs).squeeze(-1)  # (1, length)
+        confidence = self.confidence_scorer(token_embs).squeeze(-1)  # (B, length)
 
         # Determine positions to mask (lowest confidence)
         num_mask = max(1, int(length * mask_ratio))
-        _, mask_indices = confidence.topk(num_mask, dim=-1, largest=False)
+        _, mask_indices = confidence.topk(num_mask, dim=-1, largest=False)  # (B, num_mask)
 
-        # Replace masked positions with mask embedding
+        # Replace masked positions with mask embedding (vectorized batched scatter)
+        batch_indices = torch.arange(B, device=token_embs.device).unsqueeze(1).expand(B, num_mask)
         masked_embs = token_embs.clone()
-        for idx in mask_indices.squeeze(0):
-            masked_embs[0, idx, :] = self.mask_embedding
+        masked_embs[batch_indices, mask_indices] = self.mask_embedding
 
         # Refine through decoder (cross-attend to solution)
         refined = self.refine_decoder(masked_embs, solution_emb)
 
         # Merge: keep unmasked positions, use refined for masked
         output = token_embs.clone()
-        for idx in mask_indices.squeeze(0):
-            output[0, idx, :] = refined[0, idx, :]
+        output[batch_indices, mask_indices] = refined[batch_indices, mask_indices]
 
         # Re-score confidence
         new_confidence = self.confidence_scorer(output).squeeze(-1)

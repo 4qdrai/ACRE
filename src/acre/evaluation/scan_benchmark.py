@@ -286,7 +286,10 @@ class SCANModel(nn.Module):
 
         composite_concept = concept_seq[:, 0]  # (B, 10, d_element)
         for t in range(1, min(max_active_len, seq_len)):
-            composite_concept = self.algebra.compose(composite_concept, concept_seq[:, t])
+            new_composite = self.algebra.compose(composite_concept, concept_seq[:, t])
+            # Only update sequences where token t is within the active (non-pad) length
+            mask = (t < active_lengths).view(-1, 1, 1).to(device=composite_concept.device, dtype=composite_concept.dtype)
+            composite_concept = mask * new_composite + (1.0 - mask) * composite_concept
 
         # 4. Generate a generic task problem representation
         problem_vectors = self.problem_proj(hidden.mean(dim=1)).reshape(B, 10, self.d_element)
@@ -337,7 +340,10 @@ class SCANModel(nn.Module):
 
         composite_concept = concept_seq[:, 0]
         for t in range(1, min(max_active_len, seq_len)):
-            composite_concept = self.algebra.compose(composite_concept, concept_seq[:, t])
+            new_composite = self.algebra.compose(composite_concept, concept_seq[:, t])
+            # Only update sequences where token t is within the active (non-pad) length
+            mask = (t < active_lengths).view(-1, 1, 1).to(device=composite_concept.device, dtype=composite_concept.dtype)
+            composite_concept = mask * new_composite + (1.0 - mask) * composite_concept
 
         problem_vectors = self.problem_proj(hidden.mean(dim=1)).reshape(B, 10, self.d_element)
         solutions = self.solver.forward_batched(composite_concept, problem_vectors)

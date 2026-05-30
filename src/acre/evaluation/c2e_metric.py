@@ -311,7 +311,7 @@ class C2EMetric:
             tier_elements = [i for i, t in ELEMENT_TIERS.items() if t == tier]
             tier_weight = sum(self.weights[i] for i in tier_elements)
             tier_contrib = sum(weighted_contributions[i] for i in tier_elements)
-            tier_scores[tier] = tier_contrib / tier_weight * 100 if tier_weight > 0 else 0
+            tier_scores[tier] = tier_contrib / tier_weight if tier_weight > 0 else 0
 
         return C2EResult(
             total_score=total_score,

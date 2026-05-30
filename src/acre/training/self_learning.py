@@ -164,8 +164,8 @@ class SelfLearningLoop:
         pred_solution = self.solver([c], p)
         pred = pred_solution.result_tensor
 
-        # Recommendation: Aspect-specific training target to preserve structured partitioning
-        pred_proj = pred[0]  # First aspect (ontological scaffolding) verified by spec
+        # Aspect-specific training target: align formal_specification (index 3) with spec
+        pred_proj = pred[3]  # formal_specification is element index 3
         loss_spec = F.mse_loss(pred_proj, spec_vec)
 
         # Recommendation: Apply constraint violation penalty to prevent boundary violations

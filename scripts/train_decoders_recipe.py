@@ -29,13 +29,13 @@ def build_reverse_tokenizer():
     printable_chars = string.printable
     id_to_char = {}
     for ch in printable_chars:
-        h_id = hash(ch) % 32000
+        h_id = ord(ch) % 32000
         id_to_char[h_id] = ch
     return id_to_char
 
 def tokenize_text(text: str, device) -> torch.Tensor:
     """Character-level hash tokenisation."""
-    ids = [hash(ch) % 32000 for ch in text]
+    ids = [ord(ch) % 32000 for ch in text]
     return torch.tensor(ids, dtype=torch.long, device=device)
 
 def decode_ids_to_text(ids, id_to_char) -> str:
