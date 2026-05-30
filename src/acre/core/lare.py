@@ -239,9 +239,8 @@ class LARE(nn.Module):
         # ── Context aggregation: how to aggregate concept elements
         # into a single context vector for the operator heads
         self.context_aggregator = nn.Sequential(
-            nn.Linear(num_elements * d, d),
-            nn.GELU(),
-            nn.LayerNorm(d),
+            spectral_norm(nn.Linear(num_elements * d, d)),
+            nn.Tanh(),  # Replaced GELU with Tanh (1-Lipschitz limit) to satisfy contraction theorem
         )
 
         # ── State refinement: processes the aggregated operator
@@ -254,8 +253,7 @@ class LARE(nn.Module):
 
         # ── Per-element output projection (expand d → 10*d for state)
         self.state_expand = nn.Sequential(
-            nn.Linear(d, num_elements * d),
-            nn.LayerNorm(num_elements * d),
+            spectral_norm(nn.Linear(d, num_elements * d)),
         )
 
         # ── Solution projection ───────────────────────────────────
@@ -483,7 +481,11 @@ class LARE(nn.Module):
                 f_target = -F_hist[-1]
 
                 try:
-                    alpha_coeff = torch.linalg.lstsq(F_mat, f_target.unsqueeze(-1)).solution.squeeze(-1)
+                    # Add Tikhonov (Ridge) regularization to stabilize the least-squares solve
+                    lambd = 1e-4
+                    F_T = F_mat.transpose(-2, -1)
+                    reg_matrix = F_T @ F_mat + lambd * torch.eye(F_mat.size(-1), device=device, dtype=dtype)
+                    alpha_coeff = torch.linalg.solve(reg_matrix, F_T @ f_target.unsqueeze(-1)).solution.squeeze(-1)
                 except RuntimeError:
                     x = g_x
                     continue

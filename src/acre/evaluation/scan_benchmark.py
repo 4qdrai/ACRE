@@ -234,6 +234,10 @@ class SCANModel(nn.Module):
         from acre.core.lare import LARE
         self.solver = LARE(d=self.d_element, max_steps=5)
 
+        # Concept Algebra for sequence composition
+        from acre.core.algebra import ConceptAlgebra
+        self.algebra = ConceptAlgebra(d=self.d_element)
+
         # Project SolutionTensor (10 * d_element) to d_model space for cross-attention
         self.solution_to_memory = nn.Sequential(
             nn.Linear(10 * self.d_element, d_model),
@@ -268,13 +272,27 @@ class SCANModel(nn.Module):
         cmd_emb = self.cmd_embed(cmd_ids) * math.sqrt(self.d_model)
         hidden = self.encoder(cmd_emb)  # (B, cmd_len, d_model)
 
-        # 2. Extract global concept and problem representations
-        cmd_mean = hidden.mean(dim=1)  # (B, d_model)
-        concept_vectors = self.concept_proj(cmd_mean).reshape(B, 10, self.d_element)
-        problem_vectors = self.problem_proj(cmd_mean).reshape(B, 10, self.d_element)
+        B, seq_len = cmd_ids.shape
 
-        # 3. Solve reasoning steps via stateful LARE fully batched
-        solutions = self.solver.forward_batched(concept_vectors, problem_vectors)  # (B, 10, d_element)
+        # 2. Map EVERY token in the sequence to a distinct ConceptTensor representation
+        # shape: (B, seq_len, 10, self.d_element)
+        concept_seq = self.concept_proj(hidden).reshape(B, seq_len, 10, self.d_element)
+
+        # 3. Algebraic Fold: Sequentially compose the concepts using the ⊕ operator
+        # Optimization: Only compose active (non-padding) tokens in the batch to avoid pad noise & speed up execution.
+        active_lengths = (cmd_ids != 0).sum(dim=1)
+        max_active_len = int(active_lengths.max().item())
+        max_active_len = max(max_active_len, 1)
+
+        composite_concept = concept_seq[:, 0]  # (B, 10, d_element)
+        for t in range(1, min(max_active_len, seq_len)):
+            composite_concept = self.algebra.compose(composite_concept, concept_seq[:, t])
+
+        # 4. Generate a generic task problem representation
+        problem_vectors = self.problem_proj(hidden.mean(dim=1)).reshape(B, 10, self.d_element)
+
+        # 5. Solve reasoning steps via stateful LARE fully batched
+        solutions = self.solver.forward_batched(composite_concept, problem_vectors)  # (B, 10, d_element)
         stacked_solutions = solutions.reshape(B, -1)  # (B, 10*d_element)
 
         # 4. Project solution bottleneck back to Transformer decoder memory shape
