@@ -72,8 +72,8 @@ def tex_to_html(tex_path):
     body = body.replace(r'\item', r'<li>')
     
     # Equations
-    body = re.sub(r'\\begin\{equation\}(.*?)\\end\{equation\}', lambda m: f'<div class="equation-container">\\\\begin{{equation}}{m.group(1)}\\\\end{{equation}}</div>', body, flags=re.DOTALL)
-    body = re.sub(r'\\begin\{align\}(.*?)\\end\{align\}', lambda m: f'<div class="equation-container">\\\\begin{{align}}{m.group(1)}\\\\end{{align}}</div>', body, flags=re.DOTALL)
+    body = re.sub(r'\\begin\{equation\}(.*?)\\end\{equation\}', lambda m: f'<div class="equation-container">$$\\begin{{equation}}{m.group(1)}\\end{{equation}}$$</div>', body, flags=re.DOTALL)
+    body = re.sub(r'\\begin\{align\}(.*?)\\end\{align\}', lambda m: f'<div class="equation-container">$$\\begin{{align}}{m.group(1)}\\end{{align}}$$</div>', body, flags=re.DOTALL)
     
     # Theorems and Proofs
     body = re.sub(r'\\begin\{theorem\}(?:\[([^\]]+)\])?(.*?)\\end\{theorem\}', 
