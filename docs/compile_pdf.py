@@ -38,6 +38,8 @@ def tex_to_html(tex_path):
         body_end = content.find(r"\end{document}")
     
     body = content[body_start:body_end].strip()
+    # Remove abstract from body to prevent 'Unknown environment abstract' rendering bug
+    body = re.sub(r'\\begin\{abstract\}(.*?)\\end\{abstract\}', '', body, flags=re.DOTALL)
 
     # 5. Extract Bibliography
     bib_match = re.search(r'\\begin\{thebibliography\}\{\d+\}(.*?)\\end\{thebibliography\}', content, re.DOTALL)
@@ -70,8 +72,8 @@ def tex_to_html(tex_path):
     body = body.replace(r'\item', r'<li>')
     
     # Equations
-    body = re.sub(r'\\begin\{equation\}(.*?)\\end\{equation\}', lambda m: f'<div class="equation-container">$${m.group(1)}$$</div>', body, flags=re.DOTALL)
-    body = re.sub(r'\\begin\{align\}(.*?)\\end\{align\}', lambda m: f'<div class="equation-container">$${m.group(1)}$$</div>', body, flags=re.DOTALL)
+    body = re.sub(r'\\begin\{equation\}(.*?)\\end\{equation\}', lambda m: f'<div class="equation-container">\\\\begin{{equation}}{m.group(1)}\\\\end{{equation}}</div>', body, flags=re.DOTALL)
+    body = re.sub(r'\\begin\{align\}(.*?)\\end\{align\}', lambda m: f'<div class="equation-container">\\\\begin{{align}}{m.group(1)}\\\\end{{align}}</div>', body, flags=re.DOTALL)
     
     # Theorems and Proofs
     body = re.sub(r'\\begin\{theorem\}(?:\[([^\]]+)\])?(.*?)\\end\{theorem\}', 
@@ -79,6 +81,9 @@ def tex_to_html(tex_path):
                   body, flags=re.DOTALL)
     body = re.sub(r'\\begin\{lemma\}(?:\[([^\]]+)\])?(.*?)\\end\{lemma\}', 
                   lambda m: f'<div class="theorem-box"><div class="theorem-title">Lemma ({m.group(1)})</div><div class="theorem-body">{m.group(2)}</div></div>' if m.group(1) else f'<div class="theorem-box"><div class="theorem-title">Lemma</div><div class="theorem-body">{m.group(2)}</div></div>', 
+                  body, flags=re.DOTALL)
+    body = re.sub(r'\\begin\{definition\}(?:\[([^\]]+)\])?(.*?)\\end\{definition\}', 
+                  lambda m: f'<div class="theorem-box"><div class="theorem-title">Definition ({m.group(1)})</div><div class="theorem-body">{m.group(2)}</div></div>' if m.group(1) else f'<div class="theorem-box"><div class="theorem-title">Definition</div><div class="theorem-body">{m.group(2)}</div></div>', 
                   body, flags=re.DOTALL)
     body = re.sub(r'\\begin\{proof\}(.*?)\\end\{proof\}', lambda m: f'<p class="no-indent"><strong>Proof.</strong> {m.group(1)} <span style="float: right;">$\\square$</span></p>', body, flags=re.DOTALL)
     
