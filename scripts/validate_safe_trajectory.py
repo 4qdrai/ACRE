@@ -24,7 +24,7 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     print("=" * 80)
-    print("      ACRE ROBOTICS SUPERIORITY: ZERO-HALLUCINATION SAFE DRONE MERGING")
+    print("      ACRE Trajectory Validation — Constraint-Enforced Drone Merging")
     print("=" * 80)
     print(f"Device: {device}")
 

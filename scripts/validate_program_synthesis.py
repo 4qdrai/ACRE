@@ -2,7 +2,7 @@
 """
 validate_program_synthesis.py
 
-ACRE Program Synthesis Superiority: Negative Constraints ("NO_LOOPS") Sorting Task
+ACRE Program Synthesis — Negative Constraint Enforcement: ("NO_LOOPS") Sorting Task
 ---------------------------------------------------------------------------------
 This script demonstrates ACRE's ability to enforce strict structural syntax limits.
 We ask the solver to synthesize a sorting program under a negative constraint

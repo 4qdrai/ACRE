@@ -39,12 +39,11 @@ Mathematical Foundation
 
 License
 -------
-Copyright (c) 2025 ACRE Contributors. All rights reserved.
+Copyright (c) 2026 ACRE Contributors. All rights reserved.
 
 References
 ----------
-- ACRE: Formalized Latent Concept Architecture (internal)
-- SPRIND Next Frontier AI Challenge
+- ACRE: Algebraic Concept Reasoning Engine (internal)
 """
 
 __version__ = "0.1.0"

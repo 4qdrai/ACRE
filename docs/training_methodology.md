@@ -3,7 +3,7 @@
 ## ACRE: Self-Supervised Concept Distillation & Algebraic Pre-Training
 
 > **4QDR AI Research** · June 2026
-> *A deep dive into how ACRE trains without internet-scale pretraining — and why that's a feature, not a limitation*
+> *A deep dive into how ACRE trains without internet-scale pretraining using structured concept distillation*
 
 ---
 

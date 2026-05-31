@@ -1,13 +1,13 @@
 # Empirical Simulation Results & Supporting Evidence
 
 > **4QDR AI Research** · June 2026
-> *This document provides the complete, mathematically rigorous results of the five core simulations designed to empirically validate the ACRE (Algebraic Concept Reasoning Engine) architecture for the SPRIND Next Frontier AI Challenge.*
+> *This document provides the complete, mathematically rigorous results of the five core simulations designed to empirically validate the ACRE (Algebraic Concept Reasoning Engine) architecture.*
 
 ---
 
 ## Executive Summary
 
-To verify the theoretical advantages of ACRE over standard autoregressive next-token prediction architectures, we developed and executed a comprehensive suite of five computational simulations. These simulations mathematically prove and empirically demonstrate ACRE's performance across key dimensions: computational complexity, convergence guarantees, algebraic consistency, corpus-level knowledge compression, and formal constraint satisfaction.
+To verify the theoretical advantages of ACRE over standard autoregressive next-token prediction architectures, we developed and executed a comprehensive suite of five computational simulations. These simulations empirically validate ACRE's performance across key dimensions: computational complexity, convergence guarantees, algebraic consistency, corpus-level knowledge compression, and formal constraint satisfaction.
 
 ### Key Empirical Metrics
 
@@ -69,7 +69,7 @@ Parametric Analysis:
 The results provide a rigorous, parametric validation of ACRE's computational efficiency:
 1. **Document-Level Reasoning ($32{,}000$ tokens):** For a long document, standard transformers require $1.65 \times 10^{12}$ FLOPs per attention layer, concentrating computational requirements in massive data centers. In contrast, ACRE distills the document into a structured library of $64$ core concepts ($640$ elements), requiring only $2.89 \times 10^7$ FLOPs — an empirical **$57{,}083\times$** reduction.
 2. **Asymptotic Limits ($1{,}000{,}000$ tokens):** At massive context lengths, standard attention scales to a staggering $1.54 \times 10^{15}$ FLOPs, rendering next-token prediction computationally impossible. ACRE maintains a highly efficient scaling curve, yielding a stable **$601\times$** reduction even when concepts scale with document length (assuming 1 concept per 50 tokens).
-3. **SPRIND Synergy:** This massive efficiency explains why ACRE can train on a single H100 node in under 13 hours. It moves the bottleneck of AI development from hardware scale to data engineering quality, democratizing the training of state-of-the-art architectures.
+3. **Training Efficiency:** This massive efficiency explains why ACRE can train on a single H100 node in under 13 hours. It moves the bottleneck of AI development from hardware scale to data engineering quality, democratizing the training of state-of-the-art architectures.
 
 ---
 
@@ -262,4 +262,4 @@ These simulations provide an unassailable empirical foundation for the ACRE arch
 - Internet-scale corpora can be compressed by **$7{,}810\times$** into a compact $12.8$ GB library.
 - Differentiable constraint projection structurally eliminates hallucinations, achieving **100% validity on consistent constraints**.
 
-ACRE's mathematical and empirical rigor makes it the most disruptive and scientifically sound submission for the SPRIND Next Frontier AI Challenge.
+ACRE's mathematical and empirical rigor provides a strong foundation for structured algebraic reasoning over formalized concepts.

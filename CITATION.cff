@@ -3,7 +3,7 @@ message: "If you use this software in your research, please cite it as below."
 type: software
 title: "ACRE: Algebraic Concept Reasoning Engine"
 abstract: >-
-  ACRE implements the Formalized Latent Concept Architecture (ACRE),
+  ACRE implements the Algebraic Concept Reasoning Engine (ACRE),
   a neuro-symbolic framework that decouples natural language syntax from
   formal logical reasoning. It encodes knowledge into structured 10-element
   Concept Tensors and Generalized Problem Formulations (GPFs), then reasons

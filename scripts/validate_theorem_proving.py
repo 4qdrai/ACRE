@@ -2,7 +2,7 @@
 """
 validate_theorem_proving.py
 
-ACRE Theorem Proving Superiority: Lean 4 Goal Subduction & Proof Convergence
+ACRE Theorem Proving — Goal Subduction Convergence: Lean 4 Proof via Concept Algebra
 -------------------------------------------------------------------------
 This script demonstrates ACRE's non-autoregressive reasoning for automated
 theorem proving (ATP). It represents a mathematical target theorem as a

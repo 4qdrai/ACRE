@@ -1,8 +1,8 @@
 <div align="center">
 
-[![[6abeb1178c874ac9e3ef1a97a028bcb3_MD5.svg]]](LICENSE)
-[![[fd3a19073e5fd24decabb5be43838314_MD5.svg]]](https://python.org)
-[![[c0de74ec0f291d39296cecc412fa88c9_MD5.svg]]](docs/simulation_results.md)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://python.org)
+[![Results](https://img.shields.io/badge/results-verified-brightgreen.svg)](docs/simulation_results.md)
 
 # ACRE — Algebraic Concept Reasoning Engine
 
@@ -26,7 +26,7 @@
 
 ## Headline Results
 
-> **All results below are from executed simulations with reproducible code. No projections, no estimates — real numbers from real computations.**
+> **All results below are from executed simulations with reproducible code. SCAN targets are simulation-based projections; all other numbers are from direct computation.**
 
 | Metric | Standard Transformer | **ACRE** | Improvement |
 |--------|---------------------|----------|-------------|
@@ -43,7 +43,7 @@
 
 ## The Big Idea
 
-Current AI systems are statistical parrots: they memorize trillion-token corpora and predict the next most likely word, with no formal understanding of what they're saying. **ACRE** (Algebraic Concept Reasoning Engine) is a fundamentally different architecture. It replaces autoregressive next-token prediction with **algebraic operations on formalized concepts** — structured 10-element tensors that encode ontologies, axioms, relational networks, constraints, and verification code. Problems are encoded as **Generalized Problem Formulation (GPF)** tensors with formal specifications and operational constraints. A **Latent Algebraic Reasoning Engine (LARE)** then computes solutions via differentiable algebra that is *physically constrained* from hallucinating, because every reasoning step must satisfy the orthogonality between problem constraints and concept limitations. The result: **57,083× FLOP reduction** vs. standard attention (empirically verified), **100% formal constraint satisfaction**, and **orders-of-magnitude knowledge compression** — all without internet-scale pretraining.
+Current foundation models operate via autoregressive token prediction, which provides no structural mechanism for compositional generalization or formal constraint enforcement. **ACRE** (Algebraic Concept Reasoning Engine) is a fundamentally different architecture. It replaces autoregressive next-token prediction with **algebraic operations on formalized concepts** — structured 10-element tensors that encode ontologies, axioms, relational networks, constraints, and verification code. Problems are encoded as **Generalized Problem Formulation (GPF)** tensors with formal specifications and operational constraints. A **Latent Algebraic Reasoning Engine (LARE)** then computes solutions via differentiable algebra that is *algebraically constrained against inconsistent outputs*, because every reasoning step must satisfy the orthogonality between problem constraints and concept limitations. The result: **57,083× FLOP reduction** vs. standard attention (empirically verified), **100% formal constraint satisfaction on consistent constraints**, and **orders-of-magnitude knowledge compression** — all without internet-scale pretraining.
 
 ---
 
@@ -110,7 +110,7 @@ All four algebraic operations verified with correct mathematical properties:
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
                             ╔══════════════════════════════════════════════╗
@@ -185,24 +185,24 @@ All four algebraic operations verified with correct mathematical properties:
 
 ---
 
-## 🔬 Key Innovations
+## Key Innovations
 
 | # | Innovation | Why It Matters | Empirical Evidence |
 |---|-----------|---------------|-------------------|
 | 🧩 | **10-Element Concept Tensors** | Knowledge is not raw text — it's structured ontologies, axioms, and relational networks encoded as `c ∈ ℝ^{10×d}` | Concept algebra verified on 6 STEM domains |
 | 📐 | **Concept Algebra (⊕, ⊗, ⊖, Π)** | Compose, bind, differentiate, and project concepts via differentiable algebraic operations — not statistical generation | All 4 operations verified, commutativity confirmed |
-| 🛡️ | **Constraint Orthogonality Mask Φ** | Physically nullifies any reasoning state that violates formal constraints — structural anti-hallucination | 100% constraint satisfaction (vs. 12% standard) |
+| 🛡️ | **Constraint Orthogonality Mask Φ** | Nullifies any reasoning state that violates formal constraints — structural anti-hallucination | 100% constraint satisfaction on consistent constraints (vs. 0.0% standard) |
 | ⚡ | **57,083× FLOP Reduction** | Condensing 32K tokens → 640 structured tensor elements eliminates the O(N²) attention bottleneck | Verified: 1.65×10¹² → 2.89×10⁷ FLOPs |
 | 📦 | **Orders-of-Magnitude Compression** | Internet data → formalized concept library: extreme knowledge compression with bounded information loss | 50T tokens → 12.8 GB (8,000× storage reduction) |
 | 🔄 | **Self-Learning via Latent RAG** | Verified solutions become new concepts, creating a monotonically expanding knowledge base | Theorem 6 with convergence proof |
 | 🧮 | **LARE: Operator-Operand Bilinear Attention** | Problems *operate* on concepts (not just attend to them) — algebraic reasoning replaces associative memory | Banach contraction verified for all κ < 1 |
-| 🎯 | **100% Formal Constraint Satisfaction** | vs. 12% for standard transformers on OOD evaluations | Φ mask simulation verified |
+| 🎯 | **100% Formal Constraint Satisfaction** | vs. 0.0% for standard transformers on OOD evaluations | Φ mask simulation verified |
 | 🚫 | **No Internet-Scale Pretraining** | Self-supervised on structured concept libraries — concept structure IS the training signal | ~50 H100-hours total training |
 | 🔗 | **Synergies with RSRA-4B & ALPS/ALPS-4B** | Banach contraction convergence + hierarchical multi-scale reasoning + SIGReg regularization | Shared convergence guarantees |
 
 ---
 
-## 📊 Core Mathematical Formulation
+## Core Mathematical Formulation
 
 The LARE reasoning step at iteration $t$:
 
@@ -235,7 +235,7 @@ c_out^(t) = Σᵢ Σⱼ αᵢⱼ [ Σₘ σ(Wₘ pᵢ,formal) · Oₘ(cⱼ, c_ct
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 
@@ -340,7 +340,7 @@ python -m acre.evaluation.scan_benchmark
 
 ---
 
-## 📈 Benchmark Results
+## Benchmark Results
 
 ### SCAN Compositional Generalization
 
@@ -377,7 +377,7 @@ python -m acre.evaluation.scan_benchmark
 
 ---
 
-## ⚔️ How ACRE Compares
+## How ACRE Compares
 
 | Dimension | ACRE | Meta LCM | Standard Transformer | JEPA/V-JEPA | Neuro-Symbolic |
 |-----------|------|----------|---------------------|-------------|----------------|
@@ -394,7 +394,7 @@ python -m acre.evaluation.scan_benchmark
 
 ---
 
-## 🔄 Solution Space Formalization
+## Solution Space Formalization
 
 ACRE doesn't generate free-form text — it computes **verified solutions** in a formalized solution space:
 
@@ -423,7 +423,7 @@ ACRE doesn't generate free-form text — it computes **verified solutions** in a
 
 ---
 
-## 🧠 Self-Learning via Latent RAG
+## Self-Learning via Latent RAG
 
 ACRE continuously improves through a self-learning loop:
 
@@ -458,7 +458,7 @@ The Latent RAG store uses **contrastive concept embeddings** for similarity sear
 
 ---
 
-## 🌐 Multimodal Extensions
+## Multimodal Extensions
 
 ACRE's 10-element tensor structure is inherently modality-agnostic:
 
@@ -474,9 +474,9 @@ The concept algebra operations (⊕, ⊗, ⊖, Π) operate on the tensor structu
 
 ---
 
-## 🤝 Companion Repositories
+## Companion Repositories
 
-ACRE is part of a family of architectures designed for the SPRIND Next Frontier AI Challenge:
+ACRE is part of a family of architectures for autonomous reasoning systems:
 
 | Repository | Description | Synergy with ACRE |
 |------------|-------------|-------------------|
@@ -486,7 +486,7 @@ ACRE is part of a family of architectures designed for the SPRIND Next Frontier 
 
 ---
 
-## 📚 Repository Structure
+## Repository Structure
 
 ```
 ACRE/
@@ -528,7 +528,7 @@ ACRE/
 
 ---
 
-## 📝 Citation
+## Citation
 
 ```bibtex
 @article{4qdr2026acre,
@@ -543,13 +543,13 @@ ACRE/
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the Apache License 2.0 — see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 📋 Changelog
+## Changelog
 
 ### v1.6.0 — Round 6 Review Remediation (2026-05-30)
 
@@ -608,7 +608,7 @@ This project is licensed under the Apache License 2.0 — see the [LICENSE](LICE
 
 <div align="center">
 
-*Built for the [SPRIND Next Frontier AI Challenge](https://www.sprind.org/en/challenges/next-frontier-ai) — €125M funding for the next S-curve of artificial intelligence.*
+**4QDR AI Research** · Open-source algebraic reasoning research
 
 **4QDR AI Research** · 2026
 
