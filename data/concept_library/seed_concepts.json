@@ -1,7 +1,7 @@
 ﻿{
   "metadata": {
     "version": "0.1.0",
-    "description": "ACRE Seed Concept Library â€” 20 structured concepts across Mathematics, Physics, Computer Science, Autonomous Driving, and AI/ML. Each concept follows the 10-element Formalized Concept structure defined by the F-LACA architecture.",
+    "description": "ACRE Seed Concept Library â€” 20 structured concepts across Mathematics, Physics, Computer Science, Autonomous Driving, and AI/ML. Each concept follows the 10-element Formalized Concept structure defined by the ACRE architecture.",
     "element_schema": [
       "ontological_scaffolding",
       "abstraction_level",

@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "acre"
 version = "0.1.0"
-description = "Algebraic Concept Reasoning Engine — Formalized Latent Concept Architecture (F-LACA)"
+description = "Algebraic Concept Reasoning Engine — Formalized Latent Concept Architecture (ACRE)"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.10"
@@ -70,11 +70,11 @@ all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/4qdrai/F-LACA"
-Documentation = "https://github.com/4qdrai/F-LACA/wiki"
-Repository = "https://github.com/4qdrai/F-LACA"
-Issues = "https://github.com/4qdrai/F-LACA/issues"
-Changelog = "https://github.com/4qdrai/F-LACA/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/4qdrai/ACRE"
+Documentation = "https://github.com/4qdrai/ACRE/wiki"
+Repository = "https://github.com/4qdrai/ACRE"
+Issues = "https://github.com/4qdrai/ACRE/issues"
+Changelog = "https://github.com/4qdrai/ACRE/blob/main/CHANGELOG.md"
 
 [project.scripts]
 acre-distill = "acre.scripts.distill_concepts:main"

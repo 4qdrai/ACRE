@@ -2,7 +2,7 @@
 LARE — Latent Algebraic Reasoning Engine
 =========================================
 
-The **LARE** is the central reasoning module in the F-LACA architecture.
+The **LARE** is the central reasoning module in the ACRE architecture.
 It replaces standard transformer attention with a *constrained operator-
 operand bilinear mechanism* that operates directly on structured
 ConceptTensors and ProblemTensors.

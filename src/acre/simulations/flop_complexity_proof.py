@@ -163,7 +163,7 @@ def multiple_compression_ratios() -> Dict[str, Dict[str, np.ndarray]]:
 # ---------------------------------------------------------------------------
 
 def compute_proof_point() -> Dict[str, float]:
-    """Compute the exact proof point from the F-LACA specification.
+    """Compute the exact proof point from the ACRE specification.
 
     N = 32,000 tokens
     K = 640 concept elements (64 concepts × 10 elements)
@@ -211,7 +211,7 @@ def generate_figures(output_dir: str | None = None) -> None:
 
     fig, axes = plt.subplots(2, 2, figsize=(16, 12))
     fig.suptitle(
-        "F-LACA FLOP Complexity Proof: O(N²) → O(K²)",
+        "ACRE FLOP Complexity Proof: O(N²) → O(K²)",
         fontsize=18, fontweight="bold", y=0.98,
     )
 

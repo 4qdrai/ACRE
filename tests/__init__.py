@@ -1,2 +1,2 @@
 # ACRE Test Suite
-# Tests for the Algebraic Concept Reasoning Engine (F-LACA)
+# Tests for the Algebraic Concept Reasoning Engine (ACRE)

@@ -4,7 +4,7 @@ ACRE Core — The algebraic reasoning core of the ACRE architecture.
 
 This package contains the foundational data structures, algebraic operations,
 and neural network modules that implement the Formalized Latent Concept
-Architecture (F-LACA).
+Architecture (ACRE).
 
 Module Overview
 ---------------

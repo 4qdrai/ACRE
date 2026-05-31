@@ -2,7 +2,7 @@
 Concept Tensor — The 10-Element Knowledge Operand
 ==================================================
 
-In the F-LACA architecture, a **Concept** is the atomic unit of structured
+In the ACRE architecture, a **Concept** is the atomic unit of structured
 knowledge. Unlike flat word embeddings, a Concept Tensor is a *partitioned
 manifold* :math:`\\mathbf{c} \\in \\mathbb{R}^{10 \\times d}` where each of the
 10 rows encodes a semantically distinct aspect of the concept:
@@ -31,7 +31,7 @@ Design Rationale
 - **Not a flat vector**: Each element has distinct semantics, enabling
   targeted operations (projection, masking, binding).
 - **Fixed 10 elements**: Matches the formalized Concept definition from
-  the F-LACA hypothesis.
+  the ACRE hypothesis.
 - **Differentiable**: All operations preserve gradients for end-to-end training.
 """
 

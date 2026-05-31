@@ -4,7 +4,7 @@ ACRE Concept Distillation Script
 =================================
 Extracts structured 10-element Concept and Problem Formulation (GPF) structures
 from unstructured text. This is the key data pipeline that transforms raw domain
-knowledge into the dense tensor representations used by F-LACA.
+knowledge into the dense tensor representations used by ACRE.
 
 Think of it like a "compiler" for knowledge â€” it reads plain English (or any text)
 and outputs structured JSON concept definitions with all 10 required elements.
@@ -45,7 +45,7 @@ logger = logging.getLogger("acre.distill")
 
 # â”€â”€ Data Structures â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-# The 10 elements of a Formalized Concept, matching the F-LACA spec
+# The 10 elements of a Formalized Concept, matching the ACRE spec
 CONCEPT_ELEMENT_NAMES = [
     "ontological_scaffolding",   # Element 1: Definitions, taxonomy, modular composition
     "abstraction_level",         # Element 2: Level 1-4 (meta â†’ concrete)

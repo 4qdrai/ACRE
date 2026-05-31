@@ -2,7 +2,7 @@
 Solution Decoder — Translational Decoder from Latent Space to Output
 ====================================================================
 
-The **SolutionDecoder** is the final stage of the F-LACA pipeline. It takes
+The **SolutionDecoder** is the final stage of the ACRE pipeline. It takes
 a SolutionTensor (the algebraic result from LARE) and maps it back to
 human-readable output: text tokens, code tokens, or formal specification
 tokens.

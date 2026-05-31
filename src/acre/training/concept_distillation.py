@@ -1,7 +1,7 @@
 """
 Concept Distillation — Self-supervised extraction of structured concepts from text.
 
-This module implements the core F-LACA insight: raw unstructured text can be
+This module implements the core ACRE insight: raw unstructured text can be
 *compressed* into dense 10-element Concept Tensors and Problem Tensors,
 dramatically reducing the token count while preserving semantic content.
 

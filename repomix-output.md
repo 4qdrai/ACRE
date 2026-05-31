@@ -46,7 +46,7 @@ docs/scientific_paper.tex
 docs/simulation_results.md
 docs/training_methodology.md
 goals_and_nongoals.md
-Idea 2 F-LACA Formalized Concepts.md
+Idea 2 ACRE Formalized Concepts.md
 LICENSE
 pyproject.toml
 README.md
@@ -159,7 +159,7 @@ message: "If you use this software in your research, please cite it as below."
 type: software
 title: "ACRE: Algebraic Concept Reasoning Engine"
 abstract: >-
-  ACRE implements the Formalized Latent Concept Architecture (F-LACA),
+  ACRE implements the Formalized Latent Concept Architecture (ACRE),
   a neuro-symbolic framework that decouples natural language syntax from
   formal logical reasoning. It encodes knowledge into structured 10-element
   Concept Tensors and Generalized Problem Formulations (GPFs), then reasons
@@ -170,8 +170,8 @@ abstract: >-
 version: 0.1.0
 date-released: "2026-05-27"
 license: Apache-2.0
-repository-code: "https://github.com/4qdrai/F-LACA"
-url: "https://github.com/4qdrai/F-LACA"
+repository-code: "https://github.com/4qdrai/ACRE"
+url: "https://github.com/4qdrai/ACRE"
 keywords:
   - algebraic-reasoning
   - concept-learning
@@ -188,7 +188,7 @@ authors:
     given-names: "Said"
     affiliation: "4QDR AI Research"
   - family-names: "Research Team"
-    given-names: "F-LACA"
+    given-names: "ACRE"
     affiliation: "4QDR AI Research"
 references:
   - type: article
@@ -594,7 +594,7 @@ evaluation:
 {
   "metadata": {
     "version": "0.1.0",
-    "description": "ACRE Seed Concept Library — 20 structured concepts across Mathematics, Physics, Computer Science, Autonomous Driving, and AI/ML. Each concept follows the 10-element Formalized Concept structure defined by the F-LACA architecture.",
+    "description": "ACRE Seed Concept Library — 20 structured concepts across Mathematics, Physics, Computer Science, Autonomous Driving, and AI/ML. Each concept follows the 10-element Formalized Concept structure defined by the ACRE architecture.",
     "element_schema": [
       "ontological_scaffolding",
       "abstraction_level",
@@ -1209,9 +1209,9 @@ ACRE and JEPA/V-JEPA are complementary rather than competing:
 | **Core mechanism** | Concept algebra | Latent predictive coding |
 | **Synergy** | JEPA visual features → ACRE Element 7 | ACRE constraints → JEPA action selection |
 | **Training** | Concept structure supervision | Self-supervised from video |
-| **From ALPS/4B-JEPA** | SIGReg regularization for operator norm control | Hierarchical multi-scale concept abstraction |
+| **From ALPS/ALPS-4B** | SIGReg regularization for operator norm control | Hierarchical multi-scale concept abstraction |
 
-The **4B-JEPA/ALPS** companion architecture provides hierarchical multi-scale representations that map naturally to ACRE's abstraction levels (Element 2), while ACRE provides the formal reasoning layer that JEPA currently lacks.
+The **ALPS-4B/ALPS** companion architecture provides hierarchical multi-scale representations that map naturally to ACRE's abstraction levels (Element 2), while ACRE provides the formal reasoning layer that JEPA currently lacks.
 
 ---
 
@@ -1692,7 +1692,7 @@ $$t \geq \frac{\log(\|\mathbf{c}^{(0)} - \mathbf{c}^*\|_F / \epsilon)}{\log(1/L)
 
 Since $\log(1/L) > 0$ (because $L < 1$), this gives $t^* = O(\log(1/\epsilon))$ steps. $\square$
 
-**Remark (Connection to RSRA-4B).** The convergence analysis directly connects to the Residual Stream Recursive Architecture (RSRA-4B), which also employs Banach contraction mappings for iterative refinement. The synergy is that RSRA-4B's convergence guarantees transfer to LARE when the concept algebra operators satisfy the same spectral norm bounds. The SIGReg regularization from ALPS/4B-JEPA provides an additional mechanism to enforce these bounds during training (Bardes et al., 2024).
+**Remark (Connection to RSRA-4B).** The convergence analysis directly connects to the Residual Stream Recursive Architecture (RSRA-4B), which also employs Banach contraction mappings for iterative refinement. The synergy is that RSRA-4B's convergence guarantees transfer to LARE when the concept algebra operators satisfy the same spectral norm bounds. The SIGReg regularization from ALPS/ALPS-4B provides an additional mechanism to enforce these bounds during training (Bardes et al., 2024).
 
 ---
 
@@ -2004,7 +2004,7 @@ ACRE achieves near-perfect compositional generalization on SCAN (97--100\% on al
 
 \textbf{Large Concept Models (LCM).} Meta FAIR's LCM \citep{meta2024lcm} shares our intuition that operating above the token level is beneficial, representing text as sentence-level SONAR embeddings and predicting the next sentence via diffusion. However, LCM's ``concepts'' are implicit sentence embeddings with no formal structure, no algebraic operations, and no constraint enforcement. ACRE's concepts are explicit, structured, and manipulable---this is the critical difference.
 
-\textbf{Joint Embedding Predictive Architectures (JEPA).} LeCun's JEPA framework \citep{lecun2022path} and its instantiations V-JEPA \citep{bardes2024revisiting} learn predictive representations in latent space, eschewing pixel-level reconstruction. ACRE draws on JEPA's insight that latent prediction is more efficient than surface-level generation, but adds explicit algebraic structure. Our companion architecture 4B-JEPA/ALPS provides hierarchical multi-scale representations that map to ACRE's abstraction levels.
+\textbf{Joint Embedding Predictive Architectures (JEPA).} LeCun's JEPA framework \citep{lecun2022path} and its instantiations V-JEPA \citep{bardes2024revisiting} learn predictive representations in latent space, eschewing pixel-level reconstruction. ACRE draws on JEPA's insight that latent prediction is more efficient than surface-level generation, but adds explicit algebraic structure. Our companion architecture ALPS-4B/ALPS provides hierarchical multi-scale representations that map to ACRE's abstraction levels.
 
 \textbf{Neuro-Symbolic AI.} Systems like DeepProbLog \citep{manhaeve2021deepproblog}, NeurASP \citep{yang2020neurasp}, and Scallop \citep{li2024scallop} integrate neural networks with symbolic reasoning engines. ACRE differs in that the symbolic structure is \emph{learned} and \emph{embedded in the neural architecture} rather than being a separate external engine. This enables end-to-end differentiable training.
 
@@ -2154,7 +2154,7 @@ Spectral norm regularization enforces the contraction property (Lemma~\ref{lem:c
 \begin{equation}
 \mathcal{L}_{\text{reg}} = \sum_{\bW} \max(0, \|\bW\|_{\text{op}} - \gamma_\bW)^2
 \end{equation}
-with $\gamma_\bW < 1$ set per-layer. This connects to SIGReg from ALPS/4B-JEPA \citep{bardes2024revisiting}.
+with $\gamma_\bW < 1$ set per-layer. This connects to SIGReg from ALPS/ALPS-4B \citep{bardes2024revisiting}.
 
 \subsection{Curriculum Learning}
 
@@ -3362,7 +3362,7 @@ L_reg = Σ_W max(0, ||W||_op - γ_W)²
 
 where `γ_W < 1` is the target spectral norm bound, set per-layer based on the contraction analysis.
 
-This connects directly to the **SIGReg regularization** from ALPS/4B-JEPA (Bardes et al., 2024), which provides a principled framework for controlling representation collapse while maintaining contraction properties.
+This connects directly to the **SIGReg regularization** from ALPS/ALPS-4B (Bardes et al., 2024), which provides a principled framework for controlling representation collapse while maintaining contraction properties.
 
 ### Training Details
 
@@ -3713,7 +3713,7 @@ The fundamental insight is that **knowledge has structure**, and exploiting that
 - Hardware-software co-design (unless it specifically fits the 7/8/9 month cycle).
 ````
 
-## File: Idea 2 F-LACA Formalized Concepts.md
+## File: Idea 2 ACRE Formalized Concepts.md
 ````markdown
 By treating your explicit frameworks (such as embedding SysML relational architectures, Python verification stubs, and axiomatic bases) not just as documentation, but as the literal, hardcoded topological structure of the latent space, the model mathematically transitions from a statistical word-predictor into a **Formal Algebraic Reasoner**. The AI is physically constrained from hallucinating because it must structurally resolve the GPF's formal requirements against the Concept's known axiomatic limitations before generating any text.
 
@@ -3740,27 +3740,27 @@ The finalized hypothesis has been saved to your environment as `SPRIND_Idea2_For
 
 # SPRIND Challenge: Next Frontier AI
 
-## Hypothesis Formulation: Formalized Latent Concept Architecture (F-LACA)
+## Hypothesis Formulation: Formalized Latent Concept Architecture (ACRE)
 
 ## Step 1: Hypothesis Structuring (The Blueprint)
 
 ### 1. Core Idea Definition
 
-The **Formalized Latent Concept Architecture (F-LACA)** structurally decouples natural language syntax from formal logical reasoning. It abandons standard autoregressive next-token prediction; instead, specialized encoder micro-models condense unstructured input into two explicit, high-dimensional topological spaces based on rigid 10-element frameworks: **Formalized Concepts** (knowledge operands embedding _Ontological Scaffolding_, _Axiomatic Bases_, and _SysML Relational Networks_) and **Generalized Problem Formulations (GPFs)** (task operators embedding _Formal Specifications_, _Verification Code_, and _Operational Constraints_). A central Latent Algebraic Reasoning Engine processes these discrete structures via differentiable mathematical algebra to compute verifiable solutions.
+The **Formalized Latent Concept Architecture (ACRE)** structurally decouples natural language syntax from formal logical reasoning. It abandons standard autoregressive next-token prediction; instead, specialized encoder micro-models condense unstructured input into two explicit, high-dimensional topological spaces based on rigid 10-element frameworks: **Formalized Concepts** (knowledge operands embedding _Ontological Scaffolding_, _Axiomatic Bases_, and _SysML Relational Networks_) and **Generalized Problem Formulations (GPFs)** (task operators embedding _Formal Specifications_, _Verification Code_, and _Operational Constraints_). A central Latent Algebraic Reasoning Engine processes these discrete structures via differentiable mathematical algebra to compute verifiable solutions.
 
 ### 2. Technical Novelty & Citation Matrix
 
 Current foundation models treat reasoning as statistical text generation, failing at out-of-distribution (OOD) compositional tasks (Hupkes et al., 2023) and struggling to internalize rigorous structural bounds like Autonomous Driving validation (Dziri et al., 2024).
 
-**Novelty:** F-LACA physically projects the user-defined 10-Element _Concept_ and _GPF_ structures into the network's latent geometry. A _Problem Tensor_ ($P$) is not a word embedding; it is a 10-dimensional manifold natively containing a GPF (e.g., `P-AD-VAL-001: Scenario Generation`), actively embedding its abstract Python stubs and execution constraints. Reasoning is executed via algebraic operations ($\oplus, \otimes$) that natively obey the constraints encoded in these templates, physically isolating world-knowledge acquisition from functional mathematical reasoning.
+**Novelty:** ACRE physically projects the user-defined 10-Element _Concept_ and _GPF_ structures into the network's latent geometry. A _Problem Tensor_ ($P$) is not a word embedding; it is a 10-dimensional manifold natively containing a GPF (e.g., `P-AD-VAL-001: Scenario Generation`), actively embedding its abstract Python stubs and execution constraints. Reasoning is executed via algebraic operations ($\oplus, \otimes$) that natively obey the constraints encoded in these templates, physically isolating world-knowledge acquisition from functional mathematical reasoning.
 
 ### 3. Capability Gap Addressed
 
-Standard transformers cannot guarantee adherence to rigid system engineering constraints (like SysML state boundaries or strict XML schema validity) because they rely on probabilistic sequence generation. F-LACA mathematically bounds the solution space. By forcing the latent reasoning to operate strictly within the bounds of the Concept's _Limitations & Risks (Element 9)_ and the GPF's _Constraints & Context (Element 6)_, it structurally eliminates logic hallucinations and guarantees mathematically valid constraint satisfaction.
+Standard transformers cannot guarantee adherence to rigid system engineering constraints (like SysML state boundaries or strict XML schema validity) because they rely on probabilistic sequence generation. ACRE mathematically bounds the solution space. By forcing the latent reasoning to operate strictly within the bounds of the Concept's _Limitations & Risks (Element 9)_ and the GPF's _Constraints & Context (Element 6)_, it structurally eliminates logic hallucinations and guarantees mathematically valid constraint satisfaction.
 
 ### 4. The Disruption Vector
 
-F-LACA invalidates the multi-trillion token brute-force pre-training scaling laws. By pre-compressing massive internet text redundancy into a discrete foundational library of strict 10-element _Concepts_ and _Problems_ (reducing effective sequence lengths by orders of magnitude), the core engine trains exclusively on dense topological algebra. This guarantees verifiability for critical sectors while reducing reasoning compute complexity by over 3 orders of magnitude.
+ACRE invalidates the multi-trillion token brute-force pre-training scaling laws. By pre-compressing massive internet text redundancy into a discrete foundational library of strict 10-element _Concepts_ and _Problems_ (reducing effective sequence lengths by orders of magnitude), the core engine trains exclusively on dense topological algebra. This guarantees verifiability for critical sectors while reducing reasoning compute complexity by over 3 orders of magnitude.
 
 ## Step 2: Concept Expansion & Technical Rigor (The Architecture)
 
@@ -3826,31 +3826,31 @@ Plaintext
 
 ### Pathway 1: Algorithmic Complexity Profile via Structural Compression
 
-- **Action:** We modeled FLOP execution of standard Attention versus F-LACA's structurally condensed latent algebra.
+- **Action:** We modeled FLOP execution of standard Attention versus ACRE's structurally condensed latent algebra.
     
-- **Execution & Proof:** A standard LLM parsing an ODD Specification (e.g., GPF `P-AD-VAL-001`) and system architecture concepts requires $N=32,000$ text tokens, taking $1.02 \times 10^9$ FLOPs per attention layer. F-LACA's semantic encoder condenses this syntax strictly into $K=640$ dense 10-element Concept/GPF tensor segments. The LARE attention matrix scales to exactly $4.09 \times 10^5$ operations. **Result:** A mathematically verified $2,500\times$ reduction in reasoning complexity, effortlessly breaking the current context-window memory wall and invalidating standard compute scaling requirements.
+- **Execution & Proof:** A standard LLM parsing an ODD Specification (e.g., GPF `P-AD-VAL-001`) and system architecture concepts requires $N=32,000$ text tokens, taking $1.02 \times 10^9$ FLOPs per attention layer. ACRE's semantic encoder condenses this syntax strictly into $K=640$ dense 10-element Concept/GPF tensor segments. The LARE attention matrix scales to exactly $4.09 \times 10^5$ operations. **Result:** A mathematically verified $2,500\times$ reduction in reasoning complexity, effortlessly breaking the current context-window memory wall and invalidating standard compute scaling requirements.
     
 
 ### Pathway 2: Zero-Compute Verification Code Integration (Toy-Task Supremacy)
 
 - **Action:** We tested the system's ability to rigidly adhere to _Operational Constraints_ (Element 6) using the simulated python environment defined in GPF Element 5 (`verify_solution()`).
     
-- **Execution & Proof:** We instantiated a localized test comparing a standard transformer against the F-LACA geometric update. When tasked to generate boundary test scenarios without violating the Operational Constraints, the standard model hallucinated constraint violations in 88% of OOD evaluations. The F-LACA artifact—because its latent state mathematically nulls out constraint violations via the $\Phi$ mask derived from the GPF's Element 6 and actively pipes internal logic through the Python ABC stubs of Element 5—achieved a **100% formal validity rate** without generating a single raw hallucinated syntax token.
+- **Execution & Proof:** We instantiated a localized test comparing a standard transformer against the ACRE geometric update. When tasked to generate boundary test scenarios without violating the Operational Constraints, the standard model hallucinated constraint violations in 88% of OOD evaluations. The ACRE artifact—because its latent state mathematically nulls out constraint violations via the $\Phi$ mask derived from the GPF's Element 6 and actively pipes internal logic through the Python ABC stubs of Element 5—achieved a **100% formal validity rate** without generating a single raw hallucinated syntax token.
     
 
 ## Step 4: Final Formulation (Submission Text Blocks)
 
 ### Short Description (Max 500 chars)
 
-The Formalized Latent Concept Architecture (F-LACA) decouples language from logic. Instead of predicting text, F-LACA encodes tasks into explicit, 10-element topological frameworks: **Formal Concepts** (SysML networks, axioms) and **Generalized Problem Formulations** (formal constraints, Python evaluation stubs). Reasoning occurs natively via differentiable algebra bounded by these strict engineering constraints, structurally eliminating hallucination and reducing compute complexity by 2,500x.
+The Formalized Latent Concept Architecture (ACRE) decouples language from logic. Instead of predicting text, ACRE encodes tasks into explicit, 10-element topological frameworks: **Formal Concepts** (SysML networks, axioms) and **Generalized Problem Formulations** (formal constraints, Python evaluation stubs). Reasoning occurs natively via differentiable algebra bounded by these strict engineering constraints, structurally eliminating hallucination and reducing compute complexity by 2,500x.
 
 ### Technical Novelty (Max 2000 chars)
 
 Current frontier AI treats intelligence as "associative memory," treating deep logical constraints and surface-level syntax as identical token sequences. This leads to compounding hallucinations and failure to adhere to rigorous Model-Based Systems Engineering (MBSE) frameworks.
 
-F-LACA replaces standard auto-regression with a Neuro-Symbolic Latent Algebra explicitly anchored in rigorous Ontological Engineering. The primary technical novelty is our explicit mapping of 10-Element data templates natively into the neural representation space.
+ACRE replaces standard auto-regression with a Neuro-Symbolic Latent Algebra explicitly anchored in rigorous Ontological Engineering. The primary technical novelty is our explicit mapping of 10-Element data templates natively into the neural representation space.
 
-The F-LACA Encoder compresses language into a dense space of two ontological types:
+The ACRE Encoder compresses language into a dense space of two ontological types:
 
 1. **Concept Tensors:** 10-element manifolds embedding an _Axiomatic Base_, _Ontological Scaffolding_, and formal SysML _Relational Networks_.
     
@@ -3859,19 +3859,19 @@ The F-LACA Encoder compresses language into a dense space of two ontological typ
 
 Within our Latent Algebraic Reasoning Engine (LARE), we replace standard dot-product attention with an **Operator-Operand Bilinear Mechanism**. A GPF Tensor dictates algebraic transformations applied to Concept Tensors. Crucially, these algebraic operations are physically masked inside the forward pass. A mathematically invalid deduction is geometrically gated because the GPF's _Constraints_ tensor ($\Phi$) orthogonalizes against the Concept's _Limitations_ tensor.
 
-By operating in a latent space stripped of linguistic noise, F-LACA guarantees Out-Of-Distribution (OOD) generalization and absolute adherence to formal requirements. By shifting AI from token-frequency matching to mathematically verified compositional reasoning, we establish a highly sample-efficient capability leap.
+By operating in a latent space stripped of linguistic noise, ACRE guarantees Out-Of-Distribution (OOD) generalization and absolute adherence to formal requirements. By shifting AI from token-frequency matching to mathematically verified compositional reasoning, we establish a highly sample-efficient capability leap.
 
 ### Existing Artifacts (Max 2000 chars)
 
-To empirically de-risk the F-LACA execution thesis and demonstrate extreme execution velocity without Stage-1 compute scaling, we generated "Zero-Compute" artifacts validating the mathematical supremacy of structurally bounded latent algebra.
+To empirically de-risk the ACRE execution thesis and demonstrate extreme execution velocity without Stage-1 compute scaling, we generated "Zero-Compute" artifacts validating the mathematical supremacy of structurally bounded latent algebra.
 
 **1. Algorithmic Complexity & Profiler Proofs:** Current models hit exponential $O(N^2)$ memory walls scaling context windows for deep logic. We executed mathematical profilers mapping the FLOP footprint of parsing complex systems data (e.g., AD ODD Specifications). By condensing $N=32,000$ verbose text tokens into $K=640$ fully structured 10-Element Concept/GPF tensors (a conservative 50x structural compression), the core LARE matrix operations drop from $1.02 \times 10^9$ to $4.09 \times 10^5$. This verifiable $2,500\times$ complexity reduction mathematically proves our ability to process infinitely complex logical system architectures.
 
-**2. GPF Verification Stub Demonstrator (GitHub Repo):** Standard transformers cannot guarantee adherence to absolute logical rules. We engineered a synthetic python environment mapping to GPF Element 4 (Formal Specification) and Element 5 (Evaluation) using the `P-AD-VAL-001` Scenario Generation framework. By integrating the Abstract Base Class constraints directly into the latent evaluation mask ($\Phi$), we mathematically proved that F-LACA routes around invalid states. While standard 50M parameter LLMs hallucinated constraint violations in 88% of cases, the F-LACA artifact achieved a 100% formal validity pass rate. All profiling frameworks, Python stubs, and SysML-to-Tensor mapping scripts are prepared for the Stage 1 data room.
+**2. GPF Verification Stub Demonstrator (GitHub Repo):** Standard transformers cannot guarantee adherence to absolute logical rules. We engineered a synthetic python environment mapping to GPF Element 4 (Formal Specification) and Element 5 (Evaluation) using the `P-AD-VAL-001` Scenario Generation framework. By integrating the Abstract Base Class constraints directly into the latent evaluation mask ($\Phi$), we mathematically proved that ACRE routes around invalid states. While standard 50M parameter LLMs hallucinated constraint violations in 88% of cases, the ACRE artifact achieved a 100% formal validity pass rate. All profiling frameworks, Python stubs, and SysML-to-Tensor mapping scripts are prepared for the Stage 1 data room.
 
 ### Compute Requirements (Max 1000 chars)
 
-F-LACA fundamentally shatters the dependency on multi-trillion token brute-force pre-training by condensing textual redundancy into discrete formal engineering schemas.
+ACRE fundamentally shatters the dependency on multi-trillion token brute-force pre-training by condensing textual redundancy into discrete formal engineering schemas.
 
 For Stage 1, we will construct a 3B parameter pipeline. Due to the extreme density of the 10-Element latent space, pre-training the LARE core on 2 Billion rigorously formatted Concept and GPF structures (equivalent to >100 Billion text tokens) requires just $3.6 \times 10^{19}$ FLOPs.
 
@@ -3879,7 +3879,7 @@ This translates to roughly 50 H100 GPU hours. At standard pricing, our core comp
 
 ### Executive Summary
 
-The SPRIND Challenge demands a venture-ready, globally competitive leap in AI capability, explicitly rejecting incremental optimization. F-LACA delivers this discontinuity by solving the structural root of AI unreliability. By combining Vector Symbolic Architectures with explicit 10-Element Ontological Engineering (incorporating SysML models, formal Python ABCs, and explicit GPF constraints), we force the neural network to compute exclusively under strict algebraic and axiomatic constraints. Backed by verifiable algorithmic proofs demonstrating a >2,500x reduction in reasoning FLOPs, F-LACA is the first foundation model natively built for verifiable enterprise safety. Our hyper-efficient €3M resource allocation—focused entirely on formal data distillation rather than brute-force hardware—perfectly positions our team to rapidly operationalize this leapfrog technology and establish a dominant European Frontier AI Lab.
+The SPRIND Challenge demands a venture-ready, globally competitive leap in AI capability, explicitly rejecting incremental optimization. ACRE delivers this discontinuity by solving the structural root of AI unreliability. By combining Vector Symbolic Architectures with explicit 10-Element Ontological Engineering (incorporating SysML models, formal Python ABCs, and explicit GPF constraints), we force the neural network to compute exclusively under strict algebraic and axiomatic constraints. Backed by verifiable algorithmic proofs demonstrating a >2,500x reduction in reasoning FLOPs, ACRE is the first foundation model natively built for verifiable enterprise safety. Our hyper-efficient €3M resource allocation—focused entirely on formal data distillation rather than brute-force hardware—perfectly positions our team to rapidly operationalize this leapfrog technology and establish a dominant European Frontier AI Lab.
 ````
 
 ## File: LICENSE
@@ -4094,7 +4094,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "acre"
 version = "0.1.0"
-description = "Algebraic Concept Reasoning Engine — Formalized Latent Concept Architecture (F-LACA)"
+description = "Algebraic Concept Reasoning Engine — Formalized Latent Concept Architecture (ACRE)"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.10"
@@ -4159,11 +4159,11 @@ all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/4qdrai/F-LACA"
-Documentation = "https://github.com/4qdrai/F-LACA/wiki"
-Repository = "https://github.com/4qdrai/F-LACA"
-Issues = "https://github.com/4qdrai/F-LACA/issues"
-Changelog = "https://github.com/4qdrai/F-LACA/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/4qdrai/ACRE"
+Documentation = "https://github.com/4qdrai/ACRE/wiki"
+Repository = "https://github.com/4qdrai/ACRE"
+Issues = "https://github.com/4qdrai/ACRE/issues"
+Changelog = "https://github.com/4qdrai/ACRE/blob/main/CHANGELOG.md"
 
 [project.scripts]
 acre-distill = "acre.scripts.distill_concepts:main"
@@ -4258,7 +4258,7 @@ ignore_missing_imports = true
 [**Training**](docs/training_methodology.md) •
 [**Comparisons**](docs/comparison_matrix.md) •
 [**RSRA-4B**](#companion-repositories) •
-[**4B-JEPA/ALPS**](#companion-repositories)
+[**ALPS-4B/ALPS**](#companion-repositories)
 
 </div>
 
@@ -4438,7 +4438,7 @@ All four algebraic operations verified with correct mathematical properties:
 | 🧮 | **LARE: Operator-Operand Bilinear Attention** | Problems *operate* on concepts (not just attend to them) — algebraic reasoning replaces associative memory | Banach contraction verified for all κ < 1 |
 | 🎯 | **100% Formal Constraint Satisfaction** | vs. 12% for standard transformers on OOD evaluations | Φ mask simulation verified |
 | 🚫 | **No Internet-Scale Pretraining** | Self-supervised on structured concept libraries — concept structure IS the training signal | ~50 H100-hours total training |
-| 🔗 | **Synergies with RSRA-4B & ALPS/4B-JEPA** | Banach contraction convergence + hierarchical multi-scale reasoning + SIGReg regularization | Shared convergence guarantees |
+| 🔗 | **Synergies with RSRA-4B & ALPS/ALPS-4B** | Banach contraction convergence + hierarchical multi-scale reasoning + SIGReg regularization | Shared convergence guarantees |
 
 ---
 
@@ -4721,7 +4721,7 @@ ACRE is part of a family of architectures designed for the SPRIND Next Frontier 
 | Repository | Description | Synergy with ACRE |
 |------------|-------------|-------------------|
 | **[RSRA-4B](../RSRA-4B)** | Residual Stream Recursive Architecture | Banach contraction convergence guarantees (Theorem 4) |
-| **[4B-JEPA/ALPS](../4B-JEPA)** | Hierarchical Multi-Scale JEPA with ALPS | SIGReg regularization, hierarchical concept scales |
+| **[ALPS-4B/ALPS](../ALPS-4B)** | Hierarchical Multi-Scale JEPA with ALPS | SIGReg regularization, hierarchical concept scales |
 | **[HuggingFace 4QDR](https://huggingface.co/4QDR)** | Pre-trained concept libraries & datasets | Training data for concept distillation |
 
 ---
@@ -4850,12 +4850,12 @@ decode_composed_concept.py
 ACRE Concept Manifold Decoder & Unified Readable Aspects Viewer
 ---------------------------------------------------------------
 This script decodes ACRE's composed ConceptTensor (Linear Algebra ⊕ Calculus)
-into a human-readable format. For each of the 10 structural F-LACA elements:
+into a human-readable format. For each of the 10 structural ACRE elements:
   1. Displays the parent concept inputs (Linear Algebra prose and Calculus prose).
   2. Decodes the latent composed vector slot into a unified, mathematically rigorous
      semantic description (representing continuous manifolds, Jacobians, tangent spaces).
   3. Uses the model's token-character hash dictionary to reconstruct a clean
-     decoded representation of the composed manifold, showcasing F-LACA's translational capability.
+     decoded representation of the composed manifold, showcasing ACRE's translational capability.
 """
 
 import os
@@ -4878,7 +4878,7 @@ def build_reverse_tokenizer() -> Dict[int, str]:
         id_to_char[h_id] = ch
     return id_to_char
 
-# Unified, highly descriptive composed translations for F-LACA semantic aspect slots
+# Unified, highly descriptive composed translations for ACRE semantic aspect slots
 COMPOSED_ASPECTS_TRANSLATIONS = {
     "ontological_scaffolding": (
         "Ontological Scaffolding: A joint vector-differential system that models "
@@ -4995,7 +4995,7 @@ ACRE Concept Distillation Script
 =================================
 Extracts structured 10-element Concept and Problem Formulation (GPF) structures
 from unstructured text. This is the key data pipeline that transforms raw domain
-knowledge into the dense tensor representations used by F-LACA.
+knowledge into the dense tensor representations used by ACRE.
 
 Think of it like a "compiler" for knowledge — it reads plain English (or any text)
 and outputs structured JSON concept definitions with all 10 required elements.
@@ -5036,7 +5036,7 @@ logger = logging.getLogger("acre.distill")
 
 # ── Data Structures ─────────────────────────────────────────────────
 
-# The 10 elements of a Formalized Concept, matching the F-LACA spec
+# The 10 elements of a Formalized Concept, matching the ACRE spec
 CONCEPT_ELEMENT_NAMES = [
     "ontological_scaffolding",   # Element 1: Definitions, taxonomy, modular composition
     "abstraction_level",         # Element 2: Level 1-4 (meta → concrete)
@@ -7689,7 +7689,7 @@ Copyright (c) 2025 ACRE Contributors. All rights reserved.
 
 References
 ----------
-- F-LACA: Formalized Latent Concept Architecture (internal)
+- ACRE: Formalized Latent Concept Architecture (internal)
 - SPRIND Next Frontier AI Challenge
 """
 
@@ -7742,7 +7742,7 @@ ACRE Core — The algebraic reasoning core of the ACRE architecture.
 
 This package contains the foundational data structures, algebraic operations,
 and neural network modules that implement the Formalized Latent Concept
-Architecture (F-LACA).
+Architecture (ACRE).
 
 Module Overview
 ---------------
@@ -7794,7 +7794,7 @@ Concept Algebra — Differentiable Algebraic Operations over Structured Tensors
 =============================================================================
 
 The **ConceptAlgebra** implements the four fundamental algebraic operations
-that enable structured reasoning in the F-LACA latent space:
+that enable structured reasoning in the ACRE latent space:
 
 .. list-table:: Algebraic Operations
    :header-rows: 1
@@ -8901,7 +8901,7 @@ Concept Encoder — Translational Semantic Encoder
 =================================================
 
 The **ConceptEncoder** and **ProblemEncoder** are the entry points of the
-F-LACA pipeline. They take unstructured input (represented as token
+ACRE pipeline. They take unstructured input (represented as token
 embeddings) and compress it into the structured 10-element manifold
 representations required by the LARE.
 
@@ -9356,7 +9356,7 @@ class ProblemEncoder(nn.Module):
 Concept Tensor — The 10-Element Knowledge Operand
 ==================================================
 
-In the F-LACA architecture, a **Concept** is the atomic unit of structured
+In the ACRE architecture, a **Concept** is the atomic unit of structured
 knowledge. Unlike flat word embeddings, a Concept Tensor is a *partitioned
 manifold* :math:`\\mathbf{c} \\in \\mathbb{R}^{10 \\times d}` where each of the
 10 rows encodes a semantically distinct aspect of the concept:
@@ -9385,7 +9385,7 @@ Design Rationale
 - **Not a flat vector**: Each element has distinct semantics, enabling
   targeted operations (projection, masking, binding).
 - **Fixed 10 elements**: Matches the formalized Concept definition from
-  the F-LACA hypothesis.
+  the ACRE hypothesis.
 - **Differentiable**: All operations preserve gradients for end-to-end training.
 """
 
@@ -9788,7 +9788,7 @@ Constraint Mask Φ — Orthogonality Gating for Invalid Algebraic States
 =====================================================================
 
 The constraint mask is the mathematical mechanism that **structurally
-eliminates hallucination** in F-LACA. It computes a differentiable gate
+eliminates hallucination** in ACRE. It computes a differentiable gate
 :math:`\\Phi \\in [0, 1]^d` from two inputs:
 
 1. **GPF Constraints** (Problem Element 5 — ``constraints_context``):
@@ -10128,7 +10128,7 @@ class ConstraintMask(nn.Module):
 Solution Decoder — Translational Decoder from Latent Space to Output
 ====================================================================
 
-The **SolutionDecoder** is the final stage of the F-LACA pipeline. It takes
+The **SolutionDecoder** is the final stage of the ACRE pipeline. It takes
 a SolutionTensor (the algebraic result from LARE) and maps it back to
 human-readable output: text tokens, code tokens, or formal specification
 tokens.
@@ -10985,7 +10985,7 @@ class FlowMatchingDecoder(nn.Module):
 LARE — Latent Algebraic Reasoning Engine
 =========================================
 
-The **LARE** is the central reasoning module in the F-LACA architecture.
+The **LARE** is the central reasoning module in the ACRE architecture.
 It replaces standard transformer attention with a *constrained operator-
 operand bilinear mechanism* that operates directly on structured
 ConceptTensors and ProblemTensors.
@@ -12361,7 +12361,7 @@ class LatentRAG:
 Problem Tensor — The 10-Element GPF (Generalized Problem Formulation)
 =====================================================================
 
-In the F-LACA architecture, a **Problem** (GPF) is the task operator that
+In the ACRE architecture, a **Problem** (GPF) is the task operator that
 drives algebraic reasoning over Concept operands. Like the Concept Tensor,
 the Problem Tensor is a partitioned manifold
 :math:`\\mathbf{p} \\in \\mathbb{R}^{10 \\times d}`, but its 10 elements
@@ -13694,7 +13694,7 @@ if __name__ == "__main__":
 """
 Compression Analysis — Proving ACRE's data compression advantage.
 
-The key claim: F-LACA can compress raw internet text into dense concept
+The key claim: ACRE can compress raw internet text into dense concept
 tensors, reducing token counts by orders of magnitude while preserving
 the essential information.
 
@@ -16938,7 +16938,7 @@ def multiple_compression_ratios() -> Dict[str, Dict[str, np.ndarray]]:
 # ---------------------------------------------------------------------------
 
 def compute_proof_point() -> Dict[str, float]:
-    """Compute the exact proof point from the F-LACA specification.
+    """Compute the exact proof point from the ACRE specification.
 
     N = 32,000 tokens
     K = 640 concept elements (64 concepts × 10 elements)
@@ -16986,7 +16986,7 @@ def generate_figures(output_dir: str | None = None) -> None:
 
     fig, axes = plt.subplots(2, 2, figsize=(16, 12))
     fig.suptitle(
-        "F-LACA FLOP Complexity Proof: O(N²) → O(K²)",
+        "ACRE FLOP Complexity Proof: O(N²) → O(K²)",
         fontsize=18, fontweight="bold", y=0.98,
     )
 
@@ -17526,7 +17526,7 @@ if __name__ == "__main__":
 """
 Concept Distillation — Self-supervised extraction of structured concepts from text.
 
-This module implements the core F-LACA insight: raw unstructured text can be
+This module implements the core ACRE insight: raw unstructured text can be
 *compressed* into dense 10-element Concept Tensors and Problem Tensors,
 dramatically reducing the token count while preserving semantic content.
 
@@ -19651,7 +19651,7 @@ print("=" * 60)
 ## File: tests/__init__.py
 ````python
 # ACRE Test Suite
-# Tests for the Algebraic Concept Reasoning Engine (F-LACA)
+# Tests for the Algebraic Concept Reasoning Engine (ACRE)
 ````
 
 ## File: tests/test_algebra.py

@@ -5,12 +5,12 @@ decode_composed_concept.py
 ACRE Concept Manifold Decoder & Unified Readable Aspects Viewer
 ---------------------------------------------------------------
 This script decodes ACRE's composed ConceptTensor (Linear Algebra ⊕ Calculus)
-into a human-readable format. For each of the 10 structural F-LACA elements:
+into a human-readable format. For each of the 10 structural ACRE elements:
   1. Displays the parent concept inputs (Linear Algebra prose and Calculus prose).
   2. Decodes the latent composed vector slot into a unified, mathematically rigorous
      semantic description (representing continuous manifolds, Jacobians, tangent spaces).
   3. Uses the model's token-character hash dictionary to reconstruct a clean
-     decoded representation of the composed manifold, showcasing F-LACA's translational capability.
+     decoded representation of the composed manifold, showcasing ACRE's translational capability.
 """
 
 import os
@@ -33,7 +33,7 @@ def build_reverse_tokenizer() -> Dict[int, str]:
         id_to_char[h_id] = ch
     return id_to_char
 
-# Unified, highly descriptive composed translations for F-LACA semantic aspect slots
+# Unified, highly descriptive composed translations for ACRE semantic aspect slots
 COMPOSED_ASPECTS_TRANSLATIONS = {
     "ontological_scaffolding": (
         "Ontological Scaffolding: A joint vector-differential system that models "

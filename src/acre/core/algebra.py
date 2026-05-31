@@ -3,7 +3,7 @@ Concept Algebra — Differentiable Algebraic Operations over Structured Tensors
 =============================================================================
 
 The **ConceptAlgebra** implements the four fundamental algebraic operations
-that enable structured reasoning in the F-LACA latent space:
+that enable structured reasoning in the ACRE latent space:
 
 .. list-table:: Algebraic Operations
    :header-rows: 1

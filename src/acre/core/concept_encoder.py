@@ -3,7 +3,7 @@ Concept Encoder — Translational Semantic Encoder
 =================================================
 
 The **ConceptEncoder** and **ProblemEncoder** are the entry points of the
-F-LACA pipeline. They take unstructured input (represented as token
+ACRE pipeline. They take unstructured input (represented as token
 embeddings) and compress it into the structured 10-element manifold
 representations required by the LARE.
 

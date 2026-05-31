@@ -1,7 +1,7 @@
 """
 Compression Analysis — Proving ACRE's data compression advantage.
 
-The key claim: F-LACA can compress raw internet text into dense concept
+The key claim: ACRE can compress raw internet text into dense concept
 tensors, reducing token counts by orders of magnitude while preserving
 the essential information.
 

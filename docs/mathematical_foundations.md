@@ -457,7 +457,7 @@ $$t \geq \frac{\log(\|\mathbf{c}^{(0)} - \mathbf{c}^*\|_F / \epsilon)}{\log(1/L)
 
 Since $\log(1/L) > 0$ (because $L < 1$), this gives $t^* = O(\log(1/\epsilon))$ steps. $\square$
 
-**Remark (Connection to RSRA-4B).** The convergence analysis directly connects to the Residual Stream Recursive Architecture (RSRA-4B), which also employs Banach contraction mappings for iterative refinement. The synergy is that RSRA-4B's convergence guarantees transfer to LARE when the concept algebra operators satisfy the same spectral norm bounds. The SIGReg regularization from ALPS/4B-JEPA provides an additional mechanism to enforce these bounds during training (Bardes et al., 2024).
+**Remark (Connection to RSRA-4B).** The convergence analysis directly connects to the Residual Stream Recursive Architecture (RSRA-4B), which also employs Banach contraction mappings for iterative refinement. The synergy is that RSRA-4B's convergence guarantees transfer to LARE when the concept algebra operators satisfy the same spectral norm bounds. The SIGReg regularization from ALPS/ALPS-4B provides an additional mechanism to enforce these bounds during training (Bardes et al., 2024).
 
 ---
 

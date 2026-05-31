@@ -3,7 +3,7 @@ Constraint Mask Φ — Orthogonality Gating for Invalid Algebraic States
 =====================================================================
 
 The constraint mask is the mathematical mechanism that **structurally
-eliminates hallucination** in F-LACA. It computes a differentiable gate
+eliminates hallucination** in ACRE. It computes a differentiable gate
 :math:`\\Phi \\in [0, 1]^d` from two inputs:
 
 1. **GPF Constraints** (Problem Element 5 — ``constraints_context``):

@@ -18,7 +18,7 @@
 [**Training**](docs/training_methodology.md) •
 [**Comparisons**](docs/comparison_matrix.md) •
 [**RSRA-4B**](#companion-repositories) •
-[**4B-JEPA/ALPS**](#companion-repositories)
+[**ALPS-4B/ALPS**](#companion-repositories)
 
 </div>
 
@@ -198,7 +198,7 @@ All four algebraic operations verified with correct mathematical properties:
 | 🧮 | **LARE: Operator-Operand Bilinear Attention** | Problems *operate* on concepts (not just attend to them) — algebraic reasoning replaces associative memory | Banach contraction verified for all κ < 1 |
 | 🎯 | **100% Formal Constraint Satisfaction** | vs. 12% for standard transformers on OOD evaluations | Φ mask simulation verified |
 | 🚫 | **No Internet-Scale Pretraining** | Self-supervised on structured concept libraries — concept structure IS the training signal | ~50 H100-hours total training |
-| 🔗 | **Synergies with RSRA-4B & ALPS/4B-JEPA** | Banach contraction convergence + hierarchical multi-scale reasoning + SIGReg regularization | Shared convergence guarantees |
+| 🔗 | **Synergies with RSRA-4B & ALPS/ALPS-4B** | Banach contraction convergence + hierarchical multi-scale reasoning + SIGReg regularization | Shared convergence guarantees |
 
 ---
 
@@ -481,7 +481,7 @@ ACRE is part of a family of architectures designed for the SPRIND Next Frontier 
 | Repository | Description | Synergy with ACRE |
 |------------|-------------|-------------------|
 | **[RSRA-4B](../RSRA-4B)** | Residual Stream Recursive Architecture | Banach contraction convergence guarantees (Theorem 4) |
-| **[4B-JEPA/ALPS](../4B-JEPA)** | Hierarchical Multi-Scale JEPA with ALPS | SIGReg regularization, hierarchical concept scales |
+| **[ALPS-4B/ALPS](../ALPS-4B)** | Hierarchical Multi-Scale JEPA with ALPS | SIGReg regularization, hierarchical concept scales |
 | **[HuggingFace 4QDR](https://huggingface.co/4QDR)** | Pre-trained concept libraries & datasets | Training data for concept distillation |
 
 ---
@@ -599,7 +599,7 @@ This project is licensed under the Apache License 2.0 — see the [LICENSE](LICE
 - Deep Equilibrium (DEQ) solving
 
 ### v1.1.0 — Round 1 Review (2026-05-27)
-- Initial implementation of F-LACA architecture
+- Initial implementation of ACRE architecture
 - Concept Algebra with BilinearElementOp
 - LARE iterative reasoning engine
 - Self-learning loop with Latent RAG

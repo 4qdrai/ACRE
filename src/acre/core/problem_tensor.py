@@ -2,7 +2,7 @@
 Problem Tensor — The 10-Element GPF (Generalized Problem Formulation)
 =====================================================================
 
-In the F-LACA architecture, a **Problem** (GPF) is the task operator that
+In the ACRE architecture, a **Problem** (GPF) is the task operator that
 drives algebraic reasoning over Concept operands. Like the Concept Tensor,
 the Problem Tensor is a partitioned manifold
 :math:`\\mathbf{p} \\in \\mathbb{R}^{10 \\times d}`, but its 10 elements

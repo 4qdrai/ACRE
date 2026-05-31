@@ -43,7 +43,7 @@ Copyright (c) 2025 ACRE Contributors. All rights reserved.
 
 References
 ----------
-- F-LACA: Formalized Latent Concept Architecture (internal)
+- ACRE: Formalized Latent Concept Architecture (internal)
 - SPRIND Next Frontier AI Challenge
 """
 

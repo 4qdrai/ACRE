@@ -430,7 +430,7 @@ L_reg = Σ_W max(0, ||W||_op - γ_W)²
 
 where `γ_W < 1` is the target spectral norm bound, set per-layer based on the contraction analysis.
 
-This connects directly to the **SIGReg regularization** from ALPS/4B-JEPA (Bardes et al., 2024), which provides a principled framework for controlling representation collapse while maintaining contraction properties.
+This connects directly to the **SIGReg regularization** from ALPS/ALPS-4B (Bardes et al., 2024), which provides a principled framework for controlling representation collapse while maintaining contraction properties.
 
 ### Training Details
 

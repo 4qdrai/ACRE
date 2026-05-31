@@ -244,9 +244,9 @@ ACRE and JEPA/V-JEPA are complementary rather than competing:
 | **Core mechanism** | Concept algebra | Latent predictive coding |
 | **Synergy** | JEPA visual features → ACRE Element 7 | ACRE constraints → JEPA action selection |
 | **Training** | Concept structure supervision | Self-supervised from video |
-| **From ALPS/4B-JEPA** | SIGReg regularization for operator norm control | Hierarchical multi-scale concept abstraction |
+| **From ALPS/ALPS-4B** | SIGReg regularization for operator norm control | Hierarchical multi-scale concept abstraction |
 
-The **4B-JEPA/ALPS** companion architecture provides hierarchical multi-scale representations that map naturally to ACRE's abstraction levels (Element 2), while ACRE provides the formal reasoning layer that JEPA currently lacks.
+The **ALPS-4B/ALPS** companion architecture provides hierarchical multi-scale representations that map naturally to ACRE's abstraction levels (Element 2), while ACRE provides the formal reasoning layer that JEPA currently lacks.
 
 ---
 
