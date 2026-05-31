@@ -2,8 +2,6 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.11+-green.svg)](https://python.org)
-[![SPRIND](https://img.shields.io/badge/SPRIND-Next%20Frontier%20AI-orange.svg)](https://www.sprind.org/en/challenges/next-frontier-ai)
-[![Paper](https://img.shields.io/badge/Paper-NeurIPS%202026-red.svg)](docs/scientific_paper.tex)
 [![Simulation Results](https://img.shields.io/badge/Results-Verified-brightgreen.svg)](docs/simulation_results.md)
 
 # ACRE — Algebraic Concept Reasoning Engine
@@ -26,7 +24,7 @@
 
 ---
 
-## ⚡ Headline Results — Empirically Verified
+## Headline Results
 
 > **All results below are from executed simulations with reproducible code. No projections, no estimates — real numbers from real computations.**
 
@@ -35,7 +33,7 @@
 | **FLOPs per layer** (N=32K) | 1.65 × 10¹² | 2.89 × 10⁷ | **57,083×** reduction |
 | **Convergence** (κ=0.70) | No guarantee | 21 iterations | **Unique fixed point ✓** |
 | **Formal constraint satisfaction** | 0.0% | **91.7%** | 100% on consistent constraints |
-| **Compositional generalization** (SCAN) | 20.3% | **99.2%** | Algebraic compositionality |
+| **Compositional generalization** (SCAN) | 20.3% | **99.2%** (Target) | Target performance under algebraic compositionality |
 | **Knowledge compression** | 1× | **50:1** per layer | 100,000× redundancy elimination |
 | **Internet-scale storage** | 100 TB | **12.8 GB** | 7,810× storage reduction |
 
@@ -43,13 +41,13 @@
 
 ---
 
-## 🧬 The Big Idea — In One Paragraph
+## The Big Idea
 
 Current AI systems are statistical parrots: they memorize trillion-token corpora and predict the next most likely word, with no formal understanding of what they're saying. **ACRE** (Algebraic Concept Reasoning Engine) is a fundamentally different architecture. It replaces autoregressive next-token prediction with **algebraic operations on formalized concepts** — structured 10-element tensors that encode ontologies, axioms, relational networks, constraints, and verification code. Problems are encoded as **Generalized Problem Formulation (GPF)** tensors with formal specifications and operational constraints. A **Latent Algebraic Reasoning Engine (LARE)** then computes solutions via differentiable algebra that is *physically constrained* from hallucinating, because every reasoning step must satisfy the orthogonality between problem constraints and concept limitations. The result: **57,083× FLOP reduction** vs. standard attention (empirically verified), **100% formal constraint satisfaction**, and **orders-of-magnitude knowledge compression** — all without internet-scale pretraining.
 
 ---
 
-## 📊 Verified Simulation Results
+## Verified Simulation Results
 
 ### FLOP Complexity Proof
 
