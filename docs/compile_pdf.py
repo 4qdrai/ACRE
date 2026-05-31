@@ -193,7 +193,9 @@ def tex_to_html(tex_path):
         bc: "{{\\\\mathbf{{c}}}}",
         bp: "{{\\\\mathbf{{p}}}}",
         bs: "{{\\\\mathbf{{s}}}}",
-        bI: "{{\\\\mathbf{{I}}}}"
+        bI: "{{\\\\mathbf{{I}}}}",
+        llbracket: "{{\\\\lbrack\\\\!\\\\lbrack}}",
+        rrbracket: "{{\\\\rbrack\\\\!\\\\rbrack}}"
       }}
     }},
     startup: {{
