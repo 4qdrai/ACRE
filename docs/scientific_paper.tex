@@ -112,7 +112,7 @@ ACRE achieves near-perfect compositional generalization on SCAN (97--100\% on al
 
 \textbf{Large Concept Models (LCM).} Meta FAIR's LCM \citep{meta2024lcm} shares our intuition that operating above the token level is beneficial, representing text as sentence-level SONAR embeddings and predicting the next sentence via diffusion. However, LCM's ``concepts'' are implicit sentence embeddings with no formal structure, no algebraic operations, and no constraint enforcement. ACRE's concepts are explicit, structured, and manipulable---this is the critical difference.
 
-\textbf{Joint Embedding Predictive Architectures (JEPA).} LeCun's JEPA framework \citep{lecun2022path} and its instantiations V-JEPA \citep{bardes2024revisiting} learn predictive representations in latent space, eschewing pixel-level reconstruction. ACRE draws on JEPA's insight that latent prediction is more efficient than surface-level generation, but adds explicit algebraic structure. Our companion architecture 4B-JEPA/ALPS provides hierarchical multi-scale representations that map to ACRE's abstraction levels.
+\textbf{Joint Embedding Predictive Architectures (JEPA).} LeCun's JEPA framework \citep{lecun2022path} and its instantiations V-JEPA \citep{bardes2024revisiting, klindt2026when} learn predictive representations in latent space, eschewing pixel-level reconstruction. ACRE draws on JEPA's insight that latent prediction is more efficient than surface-level generation, but adds explicit algebraic structure. Our companion architecture 4B-JEPA/ALPS provides hierarchical multi-scale representations that map to ACRE's abstraction levels.
 
 \textbf{Neuro-Symbolic AI.} Systems like DeepProbLog \citep{manhaeve2021deepproblog}, NeurASP \citep{yang2020neurasp}, and Scallop \citep{li2024scallop} integrate neural networks with symbolic reasoning engines. ACRE differs in that the symbolic structure is \emph{learned} and \emph{embedded in the neural architecture} rather than being a separate external engine. This enables end-to-end differentiable training.
 
@@ -262,7 +262,7 @@ Spectral norm regularization enforces the contraction property (Lemma~\ref{lem:c
 \begin{equation}
 \mathcal{L}_{\text{reg}} = \sum_{\bW} \max(0, \|\bW\|_{\text{op}} - \gamma_\bW)^2
 \end{equation}
-with $\gamma_\bW < 1$ set per-layer. This connects to SIGReg from ALPS/4B-JEPA \citep{bardes2024revisiting}.
+with $\gamma_\bW < 1$ set per-layer. This connects to SIGReg from ALPS/ALPS-4B \citep{bardes2024revisiting, klindt2026when}.
 
 \subsection{Curriculum Learning}
 
