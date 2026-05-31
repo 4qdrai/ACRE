@@ -4238,11 +4238,11 @@ ignore_missing_imports = true
 ````markdown
 <div align="center">
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.11+-green.svg)](https://python.org)
-[![SPRIND](https://img.shields.io/badge/SPRIND-Next%20Frontier%20AI-orange.svg)](https://www.sprind.org/en/challenges/next-frontier-ai)
-[![Paper](https://img.shields.io/badge/Paper-NeurIPS%202026-red.svg)](docs/scientific_paper.tex)
-[![Simulation Results](https://img.shields.io/badge/Results-Verified-brightgreen.svg)](docs/simulation_results.md)
+[![[6abeb1178c874ac9e3ef1a97a028bcb3_MD5.svg]]](LICENSE)
+[![[fd3a19073e5fd24decabb5be43838314_MD5.svg]]](https://python.org)
+[![[6effecd109d69ebcb205b8a44d3b956c_MD5.svg]]](https://www.sprind.org/en/challenges/next-frontier-ai)
+[![[f70320465db38360dfc96da5ce2d4883_MD5.svg]]](docs/scientific_paper.tex)
+[![[c0de74ec0f291d39296cecc412fa88c9_MD5.svg]]](docs/simulation_results.md)
 
 # ACRE — Algebraic Concept Reasoning Engine
 
