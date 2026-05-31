@@ -7,11 +7,11 @@ name = "acre"
 version = "0.1.0"
 description = "Algebraic Concept Reasoning Engine — Formalized Latent Concept Architecture (ACRE)"
 readme = "README.md"
-license = {text = "Apache-2.0"}
+license = {text = "CC-BY-NC-SA-4.0"}
 requires-python = ">=3.10"
 authors = [
-    {name = "4QDR AI Research"},
-    {name = "Said Bouali", email = "research@4qdr.ai"},
+    {name = "Dr-Ing. M. Essayed Bouzouraa", email = "research@4qdr.ai"},
+    {name = "4QDR.AI Labs"},
 ]
 keywords = [
     "algebraic-reasoning",
@@ -24,7 +24,7 @@ keywords = [
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: Apache Software License",
+    "License :: Free For Non-Commercial Use",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",

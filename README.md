@@ -133,7 +133,7 @@ ACRE is part of a family of cognitive architectures for safe autonomous systems:
 @article{4qdr2026acre,
   title={ACRE: Algebraic Concept Reasoning Engine — Structured Knowledge
          Compression and Verifiable Compositional Reasoning},
-  author={4QDR AI Research},
+  author={4QDR.AI Labs},
   year={2026},
   note={Preprint in preparation}
 }
@@ -149,6 +149,6 @@ This project is licensed under the Apache License 2.0 — see the [LICENSE](LICE
 
 <div align="center">
 
-**4QDR AI Research** · 2026
+**4QDR.AI Labs** · 2026
 
 </div>

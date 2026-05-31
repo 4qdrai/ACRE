@@ -13,7 +13,7 @@ abstract: >-
   magnitude compared to standard autoregressive transformers.
 version: 0.1.0
 date-released: "2026-05-27"
-license: Apache-2.0
+license: CC-BY-NC-SA-4.0
 repository-code: "https://github.com/4qdrai/ACRE"
 url: "https://github.com/4qdrai/ACRE"
 keywords:
@@ -26,13 +26,13 @@ keywords:
   - compositional-generalization
   - autonomous-driving
 authors:
-  - name: "4QDR AI Research"
-    alias: "4qdrai"
-  - family-names: "Bouali"
-    given-names: "Said"
-    affiliation: "4QDR AI Research"
-  - name: "ACRE Research Team"
-    affiliation: "4QDR AI Research"
+  - family-names: "Bouzouraa"
+    given-names: "Essayed"
+    title: "Dr-Ing."
+    affiliation: "4QDR.AI Labs"
+    email: "research@4qdr.ai"
+  - name: "4QDR.AI Research Team"
+    affiliation: "4QDR.AI Labs"
 references:
   - type: article
     title: "Compositional Generalization in Neural Networks"

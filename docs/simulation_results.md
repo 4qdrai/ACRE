@@ -1,6 +1,6 @@
 # Empirical Simulation Results & Supporting Evidence
 
-> **4QDR AI Research** · June 2026
+> **4QDR.AI Labs** · June 2026
 > *This document provides the complete, mathematically rigorous results of the five core simulations designed to empirically validate the ACRE (Algebraic Concept Reasoning Engine) architecture.*
 
 ---

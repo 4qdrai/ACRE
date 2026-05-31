@@ -2,7 +2,7 @@
 
 ## Algebraic Concept Reasoning Engine — Formal Theory
 
-> **4QDR AI Research** · June 2026
+> **4QDR.AI Labs** · June 2026
 > *This document provides the complete mathematical foundation for ACRE, with formal definitions, theorems, proofs, and corollaries. All results are stated with full rigor.*
 
 ---
@@ -216,7 +216,7 @@ The iteration is initialized with $\mathbf{c}_{\text{out}}^{(0)} = \frac{1}{|\ma
 2. *The attention weights satisfy $\sum_{i,j} \alpha_{ij} = 1$*
 3. *The constraint mask satisfies $\|\Phi(\mathbf{p}, \mathbf{c})\|_{op} \leq 1$*
 
-*Then $T$ is a contraction mapping with Lipschitz constant $L < 1$:*
+Then $T$ is a contraction mapping with Lipschitz constant $L < 1$:
 
 $$\|T(\mathbf{c}_1) - T(\mathbf{c}_2)\|_F \leq L \|\mathbf{c}_1 - \mathbf{c}_2\|_F$$
 
@@ -257,13 +257,13 @@ Under the stated conditions on weight matrix norms and with softmax gating enfor
 
 **Theorem 1.** *Let $X = \{x_1, \ldots, x_N\}$ be a corpus of $N$ natural language tokens, and let $\mathcal{E}: X \to \mathcal{C}$ be the concept encoder that maps $X$ to $K$ concept tensors $\{c_1, \ldots, c_K\}$. Then:*
 
-*(i) The compression ratio is $\rho = N / (10K)$, and*
+- **(i)** The compression ratio is $\rho = N / (10K)$, and
 
 *(ii) The information loss is bounded by:*
 
 $$I(X) - I(\mathcal{E}(X)) \leq K \cdot \max_{j} D_{KL}(p_{x|c_j} \| q_{x|c_j}) + \log\binom{N}{K}^{-1}$$
 
-*where $I(\cdot)$ denotes mutual information with respect to downstream tasks, $p_{x|c_j}$ is the true conditional distribution of tokens given concept $c_j$, and $q_{x|c_j}$ is the encoder's approximation.*
+where $I(\cdot)$ denotes mutual information with respect to downstream tasks, $p_{x|c_j}$ is the true conditional distribution of tokens given concept $c_j$, and $q_{x|c_j}$ is the encoder's approximation.
 
 **Proof.**
 
@@ -311,7 +311,7 @@ For the canonical case of $N = 32{,}000$ tokens and $K = 64$ concepts (equivalen
 
 $$\text{FLOP Ratio} = \frac{\text{Standard Attention FLOPs}}{\text{LARE Algebraic FLOPs}} \approx \frac{4Nd^2 + 2N^2 d}{K^2 d_{\text{elem}} + K d_{\text{elem}} + K d_{\text{elem}}^2}$$
 
-*For $N = 32{,}000$ tokens and $K = 640$ elements (64 concepts × 10 elements each) with $d_{\text{elem}} = 64$ and $d_{\text{model}} = 768$: Standard Attention FLOPs = $1.65 \times 10^{12}$, LARE Algebraic FLOPs = $2.89 \times 10^7$, yielding a **57,083×** reduction.*
+For $N = 32{,}000$ tokens and $K = 640$ elements (64 concepts × 10 elements each) with $d_{\text{elem}} = 64$ and $d_{\text{model}} = 768$: Standard Attention FLOPs = $1.65 \times 10^{12}$, LARE Algebraic FLOPs = $2.89 \times 10^7$, yielding a **57,083×** reduction.
 
 **Proof.** Standard attention computes $QK^\top \in \mathbb{R}^{N \times N}$ requiring $O(N^2 d)$ FLOPs. LARE computes the bilinear form over $K$ concept tensors of size $10 \times d$ each, yielding an effective attention matrix of size $(10K) \times (10K)$. The ratio follows directly. $\square$
 
@@ -323,23 +323,23 @@ $$\text{FLOP Ratio} = \frac{\text{Standard Attention FLOPs}}{\text{LARE Algebrai
 
 **Theorem 2.** *The concept algebra $(\mathcal{C}, \oplus, \otimes, \ominus, \Pi)$ is closed: for any $\mathbf{c}_1, \mathbf{c}_2 \in \mathcal{C}$ and $\mathbf{p} \in \mathcal{P}$,*
 
-*(i) $\mathbf{c}_1 \oplus \mathbf{c}_2 \in \mathcal{C}$*
+- **(i)** $\mathbf{c}_1 \oplus \mathbf{c}_2 \in \mathcal{C}$
 
-*(ii) $\mathbf{c}_1 \otimes \mathbf{p} \in \mathcal{C}$*
+- **(ii)** $\mathbf{c}_1 \otimes \mathbf{p} \in \mathcal{C}$
 
-*(iii) $\mathbf{c}_1 \ominus \mathbf{c}_2 \in \mathcal{C}$*
+- **(iii)** $\mathbf{c}_1 \ominus \mathbf{c}_2 \in \mathcal{C}$
 
-*(iv) $\Pi_\mathcal{S}(\mathbf{c}_1) \in \mathcal{S} \subseteq \mathcal{C}$*
+- **(iv)** $\Pi_\mathcal{S}(\mathbf{c}_1) \in \mathcal{S} \subseteq \mathcal{C}$
 
 **Proof.** We prove each part by construction.
 
-*(i) Closure under $\oplus$:* The composition operation is defined as $\mathbf{c}_1 \oplus \mathbf{c}_2 = \mathbf{W}_\oplus [\mathbf{c}_1; \mathbf{c}_2] + \mathbf{b}_\oplus$ where $\mathbf{W}_\oplus \in \mathbb{R}^{10d \times 20d}$ and $\mathbf{b}_\oplus \in \mathbb{R}^{10d}$. Since $[\mathbf{c}_1; \mathbf{c}_2] \in \mathbb{R}^{20d}$ and $\mathbf{W}_\oplus$ maps this to $\mathbb{R}^{10d}$, the result reshapes to $\mathbb{R}^{10 \times d} = \mathcal{C}$. $\checkmark$
+- **(i) Closure under $\oplus$:** The composition operation is defined as $\mathbf{c}_1 \oplus \mathbf{c}_2 = \mathbf{W}_\oplus [\mathbf{c}_1; \mathbf{c}_2] + \mathbf{b}_\oplus$ where $\mathbf{W}_\oplus \in \mathbb{R}^{10d \times 20d}$ and $\mathbf{b}_\oplus \in \mathbb{R}^{10d}$. Since $[\mathbf{c}_1; \mathbf{c}_2] \in \mathbb{R}^{20d}$ and $\mathbf{W}_\oplus$ maps this to $\mathbb{R}^{10d}$, the result reshapes to $\mathbb{R}^{10 \times d} = \mathcal{C}$. $\checkmark$
 
-*(ii) Closure under $\otimes$:* The binding operation is $\mathbf{c} \otimes \mathbf{p} = \mathbf{W}_\otimes(\mathbf{c} \odot \mathbf{p}) + \mathbf{b}_\otimes$. Since $\mathbf{c}, \mathbf{p} \in \mathbb{R}^{10 \times d}$, the Hadamard product $\mathbf{c} \odot \mathbf{p} \in \mathbb{R}^{10 \times d}$. After vectorization and application of $\mathbf{W}_\otimes \in \mathbb{R}^{10d \times 10d}$, the result is in $\mathbb{R}^{10d}$, which reshapes to $\mathbb{R}^{10 \times d} = \mathcal{C}$. $\checkmark$
+- **(ii) Closure under $\otimes$:** The binding operation is $\mathbf{c} \otimes \mathbf{p} = \mathbf{W}_\otimes(\mathbf{c} \odot \mathbf{p}) + \mathbf{b}_\otimes$. Since $\mathbf{c}, \mathbf{p} \in \mathbb{R}^{10 \times d}$, the Hadamard product $\mathbf{c} \odot \mathbf{p} \in \mathbb{R}^{10 \times d}$. After vectorization and application of $\mathbf{W}_\otimes \in \mathbb{R}^{10d \times 10d}$, the result is in $\mathbb{R}^{10d}$, which reshapes to $\mathbb{R}^{10 \times d} = \mathcal{C}$. $\checkmark$
 
-*(iii) Closure under $\ominus$:* The difference operation is $\mathbf{c}_1 \ominus \mathbf{c}_2 = \mathbf{c}_1 - \text{proj}_{\mathbf{c}_2}(\mathbf{c}_1)$. Since $\text{proj}_{\mathbf{c}_2}(\mathbf{c}_1) \in \text{span}(\mathbf{c}_2) \subset \mathcal{C}$ and $\mathcal{C} = \mathbb{R}^{10 \times d}$ is a vector space (hence closed under subtraction), we have $\mathbf{c}_1 \ominus \mathbf{c}_2 \in \mathcal{C}$. $\checkmark$
+- **(iii) Closure under $\ominus$:** The difference operation is $\mathbf{c}_1 \ominus \mathbf{c}_2 = \mathbf{c}_1 - \text{proj}_{\mathbf{c}_2}(\mathbf{c}_1)$. Since $\text{proj}_{\mathbf{c}_2}(\mathbf{c}_1) \in \text{span}(\mathbf{c}_2) \subset \mathcal{C}$ and $\mathcal{C} = \mathbb{R}^{10 \times d}$ is a vector space (hence closed under subtraction), we have $\mathbf{c}_1 \ominus \mathbf{c}_2 \in \mathcal{C}$. $\checkmark$
 
-*(iv) Closure under $\Pi_\mathcal{S}$:* By construction, $\Pi_\mathcal{S}(\mathbf{c}) = \mathbf{W}_\Pi \mathbf{c}$ where $\mathbf{W}_\Pi$ is trained with the regularizer $\|\mathbf{W}_\Pi^2 - \mathbf{W}_\Pi\|_F^2 \to 0$, making it an approximate projection. The image of $\Pi_\mathcal{S}$ is the column space of $\mathbf{W}_\Pi$, which is a subspace of $\mathbb{R}^{10d}$, hence a subset of $\mathcal{C}$. We define $\mathcal{S} = \text{Im}(\Pi_\mathcal{S})$, so $\Pi_\mathcal{S}(\mathbf{c}_1) \in \mathcal{S}$ by definition. $\checkmark$ $\square$
+- **(iv) Closure under $\Pi_\mathcal{S}$:** By construction, $\Pi_\mathcal{S}(\mathbf{c}) = \mathbf{W}_\Pi \mathbf{c}$ where $\mathbf{W}_\Pi$ is trained with the regularizer $\|\mathbf{W}_\Pi^2 - \mathbf{W}_\Pi\|_F^2 \to 0$, making it an approximate projection. The image of $\Pi_\mathcal{S}$ is the column space of $\mathbf{W}_\Pi$, which is a subspace of $\mathbb{R}^{10d}$, hence a subset of $\mathcal{C}$. We define $\mathcal{S} = \text{Im}(\Pi_\mathcal{S})$, so $\Pi_\mathcal{S}(\mathbf{c}_1) \in \mathcal{S}$ by definition. $\checkmark$ $\square$
 
 ---
 
@@ -347,13 +347,13 @@ $$\text{FLOP Ratio} = \frac{\text{Standard Attention FLOPs}}{\text{LARE Algebrai
 
 **Lemma 2.** *The concept algebra satisfies the following properties (some up to approximation via learned parameters):*
 
-*(i) Commutativity of $\oplus$: If $\mathbf{W}_\oplus$ is symmetric with respect to the concatenation order, then $\mathbf{c}_1 \oplus \mathbf{c}_2 = \mathbf{c}_2 \oplus \mathbf{c}_1$.*
+- **(i)** Commutativity of $\oplus$: If $\mathbf{W}_\oplus$ is symmetric with respect to the concatenation order, then $\mathbf{c}_1 \oplus \mathbf{c}_2 = \mathbf{c}_2 \oplus \mathbf{c}_1$.
 
-*(ii) Idempotency of $\Pi$: $\Pi_\mathcal{S}(\Pi_\mathcal{S}(\mathbf{c})) = \Pi_\mathcal{S}(\mathbf{c})$ when $\mathbf{W}_\Pi^2 = \mathbf{W}_\Pi$.*
+- **(ii)** Idempotency of $\Pi$: $\Pi_\mathcal{S}(\Pi_\mathcal{S}(\mathbf{c})) = \Pi_\mathcal{S}(\mathbf{c})$ when $\mathbf{W}_\Pi^2 = \mathbf{W}_\Pi$.
 
-*(iii) Annihilation by $\Phi$: If $\mathbf{c}$ lies entirely in the violation subspace $\mathcal{V}_\perp$, then $\Phi(\mathbf{p}, \mathbf{c}) = \mathbf{0}$.*
+- **(iii)** Annihilation by $\Phi$: If $\mathbf{c}$ lies entirely in the violation subspace $\mathcal{V}_\perp$, then $\Phi(\mathbf{p}, \mathbf{c}) = \mathbf{0}$.
 
-*(iv) Self-difference: $\mathbf{c} \ominus \mathbf{c} = \mathbf{0}$ for all $\mathbf{c} \in \mathcal{C}$.*
+- **(iv)** Self-difference: $\mathbf{c} \ominus \mathbf{c} = \mathbf{0}$ for all $\mathbf{c} \in \mathcal{C}$.
 
 **Proof.** 
 
@@ -373,11 +373,11 @@ $$\text{FLOP Ratio} = \frac{\text{Standard Attention FLOPs}}{\text{LARE Algebrai
 
 **Theorem 3.** *Let $\mathbf{p} \in \mathcal{P}$ be a problem tensor with constraint element $\mathbf{p}^{(6)} \neq \mathbf{0}$, and let $\mathbf{c} \in \mathcal{C}$ be any concept tensor with limitation element $\mathbf{c}^{(9)}$. Define the constraint violation subspace as $\mathcal{V}_\perp = \text{span}\{\mathbf{v}_1, \ldots, \mathbf{v}_r\}$ where $\mathbf{v}_k$ are the singular vectors of $\mathbf{p}^{(6)} (\mathbf{c}^{(9)})^\top$ with singular values exceeding threshold $\tau > 0$. Then the constraint mask $\Phi$ satisfies:*
 
-*(i) (Nullification) For any $\mathbf{s} \in \mathcal{V}_\perp$: $\Phi(\mathbf{p}, \mathbf{s}) = \mathbf{0}$*
+- **(i)** (Nullification) For any $\mathbf{s} \in \mathcal{V}_\perp$: $\Phi(\mathbf{p}, \mathbf{s}) = \mathbf{0}$
 
-*(ii) (Preservation) For any $\mathbf{s} \perp \mathcal{V}_\perp$: $\Phi(\mathbf{p}, \mathbf{s}) = \mathbf{s}$*
+- **(ii)** (Preservation) For any $\mathbf{s} \perp \mathcal{V}_\perp$: $\Phi(\mathbf{p}, \mathbf{s}) = \mathbf{s}$
 
-*(iii) (Completeness) Every formal constraint encoded in $\mathbf{p}^{(6)}$ that interacts with a known limitation in $\mathbf{c}^{(9)}$ is captured by $\mathcal{V}_\perp$.*
+- **(iii)** (Completeness) Every formal constraint encoded in $\mathbf{p}^{(6)}$ that interacts with a known limitation in $\mathbf{c}^{(9)}$ is captured by $\mathcal{V}_\perp$.
 
 **Proof.**
 
@@ -415,7 +415,7 @@ This establishes completeness up to the threshold $\tau$, which is set adaptivel
 
 $$\forall \mathbf{s} : \text{violates}(\mathbf{s}, \mathbf{p}^{(6)}) \implies \|\Phi(\mathbf{p}, \mathbf{s})\|_F < \epsilon(\tau)$$
 
-*where $\epsilon(\tau) \to 0$ as $\tau \to 0$.*
+where $\epsilon(\tau) \to 0$ as $\tau \to 0$.
 
 **Proof.** A state $\mathbf{s}$ that violates constraint $\mathbf{p}^{(6)}$ necessarily has a non-zero component along the violation subspace $\mathcal{V}_\perp$. By Theorem 3(i), this component is nullified by $\Phi$. The residual $\epsilon(\tau)$ accounts for sub-threshold interactions. As $\tau \to 0$ (equivalently, as $\lambda \to \infty$ in the soft mask), the residual vanishes, yielding a hard guarantee. In practice, $\tau$ is calibrated so that $\epsilon(\tau) < 10^{-6}$, which is below numerical precision. $\square$
 
@@ -431,7 +431,7 @@ $$\forall \mathbf{s} : \text{violates}(\mathbf{s}, \mathbf{p}^{(6)}) \implies \|
 
 $$\|\mathbf{c}^{(t)} - \mathbf{c}^*\|_F \leq L^t \|\mathbf{c}^{(0)} - \mathbf{c}^*\|_F$$
 
-*where $L < 1$ is the contraction constant from Lemma 1, and the number of steps to reach $\epsilon$-accuracy is:*
+where $L < 1$ is the contraction constant from Lemma 1, and the number of steps to reach $\epsilon$-accuracy is:
 
 $$t^* = \left\lceil \frac{\log(\|\mathbf{c}^{(0)} - \mathbf{c}^*\|_F / \epsilon)}{\log(1/L)} \right\rceil = O\left(\log\frac{1}{\epsilon}\right)$$
 
@@ -471,7 +471,7 @@ Since $\log(1/L) > 0$ (because $L < 1$), this gives $t^* = O(\log(1/\epsilon))$ 
 - *$\kappa = 0.90$: converges in $26.1$ mean iterations (fixed point spread $< 4.58 \times 10^{-11}$)*
 - *$\kappa = 0.95$: converges in $27.6$ mean iterations (fixed point spread $< 3.86 \times 10^{-11}$)*
 
-*These empirical results confirm that LARE convergence is geometric, highly stable, and requires very few iterations in practice (typically 8–16 steps for standard reasoning scenarios, and under 30 steps even for highly conservative $\kappa = 0.95$).*
+These empirical results confirm that LARE convergence is geometric, highly stable, and requires very few iterations in practice (typically 8–16 steps for standard reasoning scenarios, and under 30 steps even for highly conservative $\kappa = 0.95$).
 
 ---
 
@@ -498,7 +498,7 @@ where $\mathcal{O}_r$ is the algebraic operator corresponding to rule $r$.
 
 $$\llbracket e \rrbracket = \text{ACRE}(e)$$
 
-*where $\text{ACRE}(e)$ is the result computed by the algebraic reasoning engine. Moreover, this holds for all expressions, including those not seen during training (systematic generalization).*
+where $\text{ACRE}(e)$ is the result computed by the algebraic reasoning engine. Moreover, this holds for all expressions, including those not seen during training (systematic generalization).
 
 **Proof.** By structural induction on the expression $e$.
 
@@ -571,7 +571,7 @@ where $\mathbf{s}^*$ is the ground truth solution (when available) and $\text{si
 
 $$\mathcal{B}^{(t+1)} = \mathcal{B}^{(t)} \cup \{\mathbf{s}^{(t)}\} \quad \text{if } Q(\mathbf{s}^{(t)}, \mathbf{p}^{(t)}) > Q_{\min}$$
 
-*where $\mathbf{s}^{(t)}$ is the solution produced at step $t$ and $Q_{\min}$ is a quality threshold. Then:*
+where $\mathbf{s}^{(t)}$ is the solution produced at step $t$ and $Q_{\min}$ is a quality threshold. Then:
 
 *(i) The expected solution quality is monotonically non-decreasing:*
 
@@ -581,7 +581,7 @@ $$\mathbb{E}[Q(\mathbf{s}^{(t+1)}, \mathbf{p}^{(t+1)})] \geq \mathbb{E}[Q(\mathb
 
 $$\lim_{t \to \infty} \mathbb{E}[Q(\mathbf{s}^{(t)}, \mathbf{p}^{(t)})] = Q^*$$
 
-*where $Q^* = \sup_{\mathcal{B}} \mathbb{E}_{\mathbf{p}}[\max_{\mathbf{s} \in \text{LARE}(\mathcal{B}, \mathbf{p})} Q(\mathbf{s}, \mathbf{p})]$ is the Bayes-optimal quality.*
+where $Q^* = \sup_{\mathcal{B}} \mathbb{E}_{\mathbf{p}}[\max_{\mathbf{s} \in \text{LARE}(\mathcal{B}, \mathbf{p})} Q(\mathbf{s}, \mathbf{p})]$ is the Bayes-optimal quality.
 
 **Proof.**
 
@@ -607,9 +607,9 @@ More rigorously, under the assumption that the problem distribution is ergodic (
 
 **Corollary 6.1.** *The self-learning loop does not suffer from catastrophic forgetting because:*
 
-*(i) The knowledge store is append-only: $\mathcal{B}^{(t+1)} \supseteq \mathcal{B}^{(t)}$.*
+- **(i)** The knowledge store is append-only: $\mathcal{B}^{(t+1)} \supseteq \mathcal{B}^{(t)}$.
 
-*(ii) The concept embedding function $E$ is trained contrastively and is not updated during the self-learning loop (frozen after initial training).*
+- **(ii)** The concept embedding function $E$ is trained contrastively and is not updated during the self-learning loop (frozen after initial training).
 
 *(iii) Previously useful concepts remain retrievable for future problems.*
 
@@ -651,4 +651,4 @@ More rigorously, under the assumption that the problem distribution is ergodic (
 
 ---
 
-*© 2026 4QDR AI Research. Mathematical Foundations v2.0.*
+*© 2026 4QDR.AI Labs. Mathematical Foundations v2.0.*

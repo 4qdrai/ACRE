@@ -2,7 +2,7 @@
 
 ## ACRE: Self-Supervised Concept Distillation & Algebraic Pre-Training
 
-> **4QDR AI Research** · June 2026
+> **4QDR.AI Labs** · June 2026
 > *A deep dive into how ACRE trains without internet-scale pretraining using structured concept distillation*
 
 ---
@@ -752,4 +752,4 @@ The fundamental insight is that **knowledge has structure**, and exploiting that
 
 ---
 
-*© 2026 4QDR AI Research. Training Methodology v2.0.*
+*© 2026 4QDR.AI Labs. Training Methodology v2.0.*

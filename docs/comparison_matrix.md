@@ -2,7 +2,7 @@
 
 ## ACRE vs. the State of the Art
 
-> **4QDR AI Research** · June 2026
+> **4QDR.AI Labs** · June 2026
 > *Systematic evaluation across 8 key dimensions against 5 competing paradigms*
 
 ---
