@@ -18,7 +18,7 @@ Current foundation models operate via autoregressive token prediction, which pro
 |:---|:---:|:---:|:---|
 | **FLOPs per layer** ($N=32\mathrm{K}$) | $1.65 \times 10^{12}$ | $2.89 \times 10^7$ | **$57{,}083\times$** computational reduction |
 | **Convergence** ($\kappa=0.70$) | No guarantee | 21 iterations | **Unique fixed point guaranteed** |
-| **Formal constraint satisfaction** (FCS) | ~12.0% (GPT-4) | **100.0%** | Provably guaranteed boundary and collision satisfaction |
+| **Formal constraint satisfaction** (FCS) | ~12.0% (GPT-like baseline) | **100.0%** | Provably guaranteed boundary and collision satisfaction |
 | **Compositional generalization** (COGS) | 16.0% - 35.0% | **>90.0%** (target) | Systematic semantic parsing under algebraic compositionality |
 | **Internet-scale storage** | 100 TB | **12.8 GB** | **$7{,}810\times$** knowledge compression |
 

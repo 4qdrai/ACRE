@@ -83,8 +83,8 @@ Concept distillation is the process of converting unstructured knowledge (text, 
 │  │ (Wikipedia,       │                                          │
 │  │  Textbooks,       │     ┌──────────────────────┐            │
 │  │  Papers,          │────►│  Frontier API Swarm  │            │
-│  │  Code Repos,      │     │  (GPT-4, Claude,     │            │
-│  │  Specifications)  │     │   Gemini — used as   │            │
+│  │  Code Repos,      │     │  (GPT-like, Claude,  │            │
+│  │  Specifications)  │     │   etc. — used as     │            │
 │  └──────────────────┘     │   concept extractors) │            │
 │                           └──────────┬───────────┘            │
 │                                      │                         │
@@ -243,7 +243,7 @@ Convert raw knowledge into high-quality 10-element concept tensors and GPF probl
 ### Method
 
 1. **Source Collection:** Gather raw knowledge from curated sources (see Section 12)
-2. **API-Swarm Extraction:** Use frontier LLMs (GPT-4, Claude, Gemini) in parallel as concept extractors
+2. **API-Swarm Extraction:** Use frontier LLMs (GPT-like, Claude, etc.) in parallel as concept extractors
 3. **Template Filling:** Each concept is structured into the 10-element template
 4. **Quality Assurance:** C2E metric validation (≥80/100), code execution, consistency checks
 5. **Expert Review:** Domain experts validate a stratified sample (10%) of distilled concepts

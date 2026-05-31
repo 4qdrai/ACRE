@@ -4,12 +4,12 @@
     "acre": {
       "satisfaction_rate": 1.0,
       "violations_per_run": 0.0,
-      "avg_manifold_distance": 7.449070024490356
+      "avg_manifold_distance": 7.700989770889282
     },
     "baseline": {
       "satisfaction_rate": 0.0,
       "violations_per_run": 4.0,
-      "avg_manifold_distance": 4.779129552841186
+      "avg_manifold_distance": 5.333579242229462
     }
   }
 }

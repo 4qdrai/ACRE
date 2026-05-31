@@ -1,0 +1,17 @@
+{
+  "simple": {
+    "accuracy": 0.62,
+    "n_examples": 200,
+    "correct": 124
+  },
+  "depth": {
+    "accuracy": 0.0,
+    "n_examples": 600,
+    "correct": 0
+  },
+  "role": {
+    "accuracy": 0.0,
+    "n_examples": 600,
+    "correct": 0
+  }
+}
