@@ -31,8 +31,7 @@ authors:
   - family-names: "Bouali"
     given-names: "Said"
     affiliation: "4QDR AI Research"
-  - family-names: "Research Team"
-    given-names: "ACRE"
+  - name: "ACRE Research Team"
     affiliation: "4QDR AI Research"
 references:
   - type: article

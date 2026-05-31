@@ -62,7 +62,7 @@ w₉ (Limitations & Risks): 0.04 - Important for safety but secondary to the cor
 
 w₁₀ (Inter-Concept Relationships): 0.04 - Provides context but is external to the concept itself.
 
-Total Weight: 0.20 + 0.18 + 0.18 + 40.08 + 30.04 = 1.00
+Total Weight: 0.20 + 0.18 + 0.18 + 4×0.08 + 3×0.04 = 1.00
 
 4. Calculation of Element Scores (Sᵢ)
 

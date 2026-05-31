@@ -480,8 +480,6 @@ ACRE represents a fundamental departure from the autoregressive paradigm. By rep
     \item \textbf{Continuous improvement:} Monotonically non-decreasing solution quality through self-learning (Theorem~\ref{thm:selflearn}).
 \end{itemize}
 
-\label{thm:selflearn}
-
 These are not incremental improvements to existing architectures---they are new capabilities enabled by algebraic reasoning over structured concept representations. ACRE establishes that structured algebraic reasoning over formalized concepts is a viable and superior alternative to statistical text generation for tasks requiring compositionality, verifiability, and formal constraint adherence.
 
 % ════════════════════════════════════════════════════════════════
@@ -716,7 +714,7 @@ Let $\bp^{(6)} (\bc^{(9)})^\top = \sum_k \sigma_k \mathbf{u}_k \mathbf{v}_k^\top
 
 \subsection{Self-Learning Convergence (Theorem 6)}
 
-\begin{theorem}[Self-Learning Convergence]
+\begin{theorem}[Self-Learning Convergence]\label{thm:selflearn}
 Under append-only updates with quality threshold $Q_{\min}$: (i) $\E[Q^{(t+1)}] \geq \E[Q^{(t)}]$, and (ii) $\lim_{t \to \infty} \E[Q^{(t)}] = Q^*$.
 \end{theorem}
 

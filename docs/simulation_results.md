@@ -63,6 +63,11 @@ Parametric Analysis:
    1,000,000         1.54e+15         2.56e+12          601×
 ```
 
+> [!NOTE]
+> **Understanding the Two FLOP Reduction Metrics:**
+> - **Proof Point (57,083× Reduction):** Assumes a **fixed** concept vocabulary of $K = 640$ elements ($64$ concepts) for $N = 32{,}000$ tokens. This represents the typical operational scenario where a large document collection is reasoned about using a pre-defined core ontology of concepts.
+> - **Parametric Analysis ($622\times$ Reduction at $N = 32{,}000$):** Assumes a **scaled** concept library where the number of unique active concepts grows linearly with context length (specifically $1$ concept per $50$ tokens, or $K = N/5$ elements). This represents an extreme scaling upper-bound where new semantically distinct concepts are introduced continuously as the context grows. Even under this adversarial scaling assumption, ACRE achieves a massive $600\times+$ computational reduction at scale.
+
 ### Interpretation & Support for ACRE
 ![FLOP Comparison — O(N²) vs O(K²)](../figures/flop_comparison.png)
 
