@@ -1,8 +1,8 @@
 <div align="center">
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.11+-green.svg)](https://python.org)
-[![Simulation Results](https://img.shields.io/badge/Results-Verified-brightgreen.svg)](docs/simulation_results.md)
+[![[6abeb1178c874ac9e3ef1a97a028bcb3_MD5.svg]]](LICENSE)
+[![[fd3a19073e5fd24decabb5be43838314_MD5.svg]]](https://python.org)
+[![[c0de74ec0f291d39296cecc412fa88c9_MD5.svg]]](docs/simulation_results.md)
 
 # ACRE — Algebraic Concept Reasoning Engine
 
