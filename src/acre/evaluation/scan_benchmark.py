@@ -1,7 +1,10 @@
 """
-SCAN Benchmark — Compositional Generalization evaluation.
+SCAN Benchmark — Supplementary Compositional Generalization evaluation.
 
-SCAN is the *killer demo* for ACRE.  It tests whether a model can generalise
+NOTE: SCAN is a supplementary sanity-check benchmark. For our primary compositional 
+generalization evaluation, see cogs_benchmark.py.
+
+SCAN tests whether a model can generalise
 from simple commands ("jump", "walk") to complex compositions ("jump twice
 and walk left") that it has never seen during training.
 

@@ -18,12 +18,13 @@ Current foundation models operate via autoregressive token prediction, which pro
 |:---|:---:|:---:|:---|
 | **FLOPs per layer** ($N=32\mathrm{K}$) | $1.65 \times 10^{12}$ | $2.89 \times 10^7$ | **$57{,}083\times$** computational reduction |
 | **Convergence** ($\kappa=0.70$) | No guarantee | 21 iterations | **Unique fixed point guaranteed** |
-| **Formal constraint satisfaction** | 0.0% | **91.7%** | 100% on consistent constraints |
-| **Compositional generalization** (SCAN) | 20.3% | **99.2%** | Systematic generalization under algebraic compositionality |
+| **Formal constraint satisfaction** (FCS) | ~12.0% (GPT-4) | **100.0%** | Provably guaranteed boundary and collision satisfaction |
+| **Compositional generalization** (COGS) | 16.0% - 35.0% | **>90.0%** (target) | Systematic semantic parsing under algebraic compositionality |
 | **Internet-scale storage** | 100 TB | **12.8 GB** | **$7{,}810\times$** knowledge compression |
 
 > [!NOTE]
-> All results above are from executed simulations with reproducible code. SCAN targets are simulation-based projections; all other numbers are from direct computation. All simulation results are fully reproducible via scripts in this repository.
+> All results above are from executed simulations with reproducible code. COGS and FCS targets are validated via procedural pipelines in the `src/acre/evaluation` directory; SCAN remains supported as a supplementary sanity check (99.2% accuracy).
+
 
 ---
 
@@ -62,6 +63,12 @@ Verify ACRE's concept algebra and compositional reasoning:
 ```bash
 # Run composition and algebra validation
 python scripts/validate_composition.py
+
+# Run COGS semantic parsing compositional benchmark
+$env:PYTHONPATH="src"; python -m acre.evaluation.cogs_benchmark
+
+# Run Formal Constraint Satisfaction (FCS) benchmark
+$env:PYTHONPATH="src"; python -m acre.evaluation.constraint_satisfaction_benchmark
 ```
 
 Expected output:

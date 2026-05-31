@@ -1,0 +1,15 @@
+{
+  "autonomous_driving": {
+    "n_runs": 10,
+    "acre": {
+      "satisfaction_rate": 1.0,
+      "violations_per_run": 0.0,
+      "avg_manifold_distance": 7.449070024490356
+    },
+    "baseline": {
+      "satisfaction_rate": 0.0,
+      "violations_per_run": 4.0,
+      "avg_manifold_distance": 4.779129552841186
+    }
+  }
+}

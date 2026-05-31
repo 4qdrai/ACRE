@@ -686,10 +686,11 @@ Expected rejection rates:
 | Benchmark | Metric | Target | Purpose |
 |-----------|--------|--------|---------|
 | **SCAN** (all splits) | Exact match accuracy | >97% | Compositional generalization |
-| **COGS** | Structural accuracy | >95% | Compositional generalization |
+| **COGS** | Exact match logic accuracy | >90% | Compositional semantic parsing (depth & role splits) |
+| **CFQ** (MCD3 split) | Exact match accuracy | >60% (target) | Systematic graph-composition generalization |
 | **C2E Metric** | Weighted score (0-100) | >85 average | Concept quality |
 | **Compression Analysis** | Compression ratio | >500× | Knowledge compression |
-| **Constraint Satisfaction** | Formal validity rate | 100% | Safety verification |
+| **Constraint Satisfaction** (FCS) | Formal validity rate | 100% | Safety verification (autonomous driving curb & obstacle avoidance) |
 | **Retrieval Quality** | Recall@10 | >85% | Concept embedding quality |
 | **Convergence Speed** | Steps to ε-accuracy | <20 steps | Reasoning efficiency |
 | **Ablation: No Φ mask** | Constraint violation rate | (baseline) | Mask importance |
